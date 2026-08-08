@@ -172,7 +172,7 @@ export default function PaymentDetail() {
               <p className="text-slate-500 font-medium">No. {payment.invoice_number}</p>
             </div>
             <div className="text-right flex flex-col items-end">
-              <h2 className="text-xl font-bold text-slate-800">KLINIK ARRUMY FISIOTERAPI</h2>
+              <h2 className="text-xl font-bold text-slate-800">ARRUMY FISIOTERAPI</h2>
               <p className="text-sm text-slate-500 max-w-[250px] mt-1 leading-relaxed">
                 Terapi Rehabilitasi Fisik Profesional
                 Neuro • Muskuloskeletal • Pediatric
@@ -260,7 +260,7 @@ export default function PaymentDetail() {
           <div className="border-t pt-8 grid grid-cols-2 gap-8">
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">DIBAYARKAN KEPADA :</h3>
-              <p className="text-base font-bold text-slate-900">KLINIK ARRUMY FISIOTERAPI</p>
+              <p className="text-base font-bold text-slate-900">ARRUMY FISIOTERAPI</p>
               <p className="text-sm text-slate-500 mt-2">Pembayaran Menggunakan</p>
               <p className="text-sm font-medium text-slate-700">{payment.payment_method || '-'}</p>
             </div>

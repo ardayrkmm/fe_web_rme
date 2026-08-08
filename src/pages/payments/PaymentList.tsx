@@ -88,11 +88,11 @@ function RowActions({ row }: { row: Payment }) {
   const handleWhatsApp = () => {
     const text =
       `Halo Bapak/Ibu ${row.patient_name}\n\n` +
-      `Terima kasih telah melakukan terapi di Klinik Arrumy Fisioterapi.\n\n` +
+      `Terima kasih telah melakukan terapi di ARRUMY FISIOTERAPI.\n\n` +
       `Invoice: ${row.invoice_number}\n` +
       `Total: Rp ${Number(row.total).toLocaleString('id-ID')}\n` +
       `Status: ${row.status}\n\n` +
-      `Semoga lekas pulih.\n\nSalam,\nKlinik Arrumy Fisioterapi`;
+      `Semoga lekas pulih.\n\nSalam,\nARRUMY FISIOTERAPI`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -104,7 +104,7 @@ function RowActions({ row }: { row: Payment }) {
       `No. Invoice: ${row.invoice_number}\n` +
       `Total: Rp ${Number(row.total).toLocaleString('id-ID')}\n` +
       `Status: ${row.status}\n\n` +
-      `Semoga lekas pulih.\n\nSalam,\nKlinik Arrumy Fisioterapi`;
+      `Semoga lekas pulih.\n\nSalam,\nARRUMY FISIOTERAPI`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
