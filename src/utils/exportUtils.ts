@@ -13,7 +13,7 @@ export const exportToPDF = (title: string, columns: string[], data: any[]) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   
-  const clinicName = 'Arummy FISIOTERAPI';
+  const clinicName = 'Arummy Fisioterapi';
   const nameWidth = doc.getTextWidth(clinicName);
   doc.text(clinicName, (pageWidth - nameWidth) / 2, 20);
   

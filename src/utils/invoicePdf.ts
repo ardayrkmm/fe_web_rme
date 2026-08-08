@@ -133,7 +133,7 @@ export function generateInvoicePdf(row: Payment) {
     setBlackText();
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text('Arummy FISIOTERAPI', 25, y);
+    doc.text('Arummy Fisioterapi', 25, y);
     
     y += 5;
     setGrayText();
