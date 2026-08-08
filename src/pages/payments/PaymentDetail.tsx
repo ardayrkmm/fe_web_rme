@@ -91,7 +91,7 @@ export default function PaymentDetail() {
 
   const handleEmail = () => {
     const subject = `Invoice Pembayaran Terapi - ${payment?.invoice_number}`;
-    const body = `Halo Bapak/Ibu ${payment?.patient_name}\n\nTerima kasih telah melakukan terapi di Klinik Fisioterapi kami.\n\nBerikut kami lampirkan tautan untuk mengunduh invoice terapi Anda:\n${getShareLink()}\n\nSemoga lekas pulih.\n\nSalam,\nKlinik Fisioterapi`;
+    const body = `Halo Bapak/Ibu ${payment?.patient_name}\n\nTerima kasih telah melakukan terapi di Arummy Fisioterapi.\n\nBerikut kami lampirkan tautan untuk mengunduh invoice terapi Anda:\n${getShareLink()}\n\nSemoga lekas pulih.\n\nSalam,\nArummy Fisioterapi`;
     const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
   };
@@ -100,7 +100,7 @@ export default function PaymentDetail() {
     if (navigator.share) {
       navigator.share({
         title: `Invoice Pembayaran ${payment?.invoice_number}`,
-        text: `Invoice pembayaran terapi klinik fisioterapi untuk ${payment?.patient_name}`,
+        text: `Invoice pembayaran terapi Arummy Fisioterapi untuk ${payment?.patient_name}`,
         url: getShareLink(),
       }).catch(console.error);
     }
