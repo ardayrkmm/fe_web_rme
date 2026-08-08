@@ -31,7 +31,7 @@ export const PrintableMedicalRecord = forwardRef<HTMLDivElement, PrintableMedica
         <div className="border-b-4 border-double border-slate-800 pb-4 mb-6 flex items-center justify-center text-center">
           <div>
             <h1 className="text-3xl font-extrabold text-blue-800 uppercase tracking-wide">
-              ARRUMY FISIOTERAPI
+              Arummy FISIOTERAPI
             </h1>
             <p className="text-sm text-slate-600 mt-1">
               Terapi Rehabilitasi Fisik Profesional<br />
