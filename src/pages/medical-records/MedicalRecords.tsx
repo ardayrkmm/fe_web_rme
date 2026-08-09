@@ -104,10 +104,25 @@ export default function MedicalRecords() {
     }
   }, [location.state]);
 
-  const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
-    documentTitle: 'RekamMedis_Pasien',
-  });
+  const handleDownloadPDF = () => {
+    const element = printComponentRef.current;
+    if (!element) return;
+    
+    const isHistory = printRecords && printRecords.length > 0;
+    const fileName = isHistory 
+      ? `Riwayat_Medis_${printRecords[0]?.patient_name || 'Pasien'}.pdf`
+      : `Rekam_Medis_${printRecord?.patient_name || 'Pasien'}.pdf`;
+
+    const opt = {
+      margin: 10,
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['medical-records', pageIndex, search, filterPatientId],
@@ -453,9 +468,9 @@ export default function MedicalRecords() {
             <DialogTitle>
               {printRecords && printRecords.length > 0 ? 'Cetak Riwayat Pasien' : 'Detail Rekam Medis'}
             </DialogTitle>
-            <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleDownloadPDF} className="bg-blue-600 hover:bg-blue-700">
               <Printer className="w-4 h-4 mr-2" />
-              Cetak Dokumen
+              Download PDF
             </Button>
           </DialogHeader>
           <div className="border border-slate-200 mt-4 rounded overflow-hidden">
