@@ -181,7 +181,7 @@ export default function TherapySessions() {
             
             return (physio.id === 'all' || String(a.physiotherapist_id) === String(physio.id)) && 
                    aptDateStr === dateStr && 
-                   a.appointment_time === timeStr &&
+                   a.appointment_time?.startsWith(timeStr) &&
                    a.status !== 'cancelled';
           });
 
