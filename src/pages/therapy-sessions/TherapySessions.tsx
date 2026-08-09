@@ -162,14 +162,23 @@ export default function TherapySessions() {
       const d = new Date(currentWeekStart);
       const endD = new Date(currentWeekEnd);
       while (d <= endD) {
-        const dateStr = d.toISOString().split('T')[0];
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${day}`;
         physioSchedule.schedule[dateStr] = [];
         
         for (let i = 8; i <= 16; i++) {
           const timeStr = `${i.toString().padStart(2, '0')}:00`;
           
           const apts = appointments.filter((a: any) => {
-            const aptDateStr = a.appointment_date ? new Date(a.appointment_date).toISOString().split('T')[0] : '';
+            if (!a.appointment_date) return false;
+            const aptDate = new Date(a.appointment_date);
+            const aptY = aptDate.getFullYear();
+            const aptM = String(aptDate.getMonth() + 1).padStart(2, '0');
+            const aptD = String(aptDate.getDate()).padStart(2, '0');
+            const aptDateStr = `${aptY}-${aptM}-${aptD}`;
+            
             return (physio.id === 'all' || String(a.physiotherapist_id) === String(physio.id)) && 
                    aptDateStr === dateStr && 
                    a.appointment_time === timeStr &&

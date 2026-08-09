@@ -160,9 +160,6 @@ export default function Appointments() {
             <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
               <FileText className="w-4 h-4 mr-2" /> Cetak PDF
             </Button>
-            <Button onClick={() => { setSelectedAppointment(null); setIsFormOpen(true); }} className="gap-2">
-              <Plus className="w-4 h-4" /> Tambah Janji Terapi
-            </Button>
           </div>
         )}
         {isPhysio && (
@@ -192,7 +189,6 @@ export default function Appointments() {
               <TableHead>Fisioterapis</TableHead>
               <TableHead>Layanan</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[80px]">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -217,57 +213,6 @@ export default function Appointments() {
                   <TableCell>{appointment.physiotherapist?.name || '-'}</TableCell>
                   <TableCell>{appointment.service_master?.name || '-'}</TableCell>
                   <TableCell>{getStatusBadge(appointment.therapy_session ? appointment.therapy_session.status : appointment.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(appointment)}>
-                          <Edit className="w-4 h-4 mr-2" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          navigate('/therapy-sessions', {
-                            state: {
-                              createFromAppointment: {
-                                patient_id: appointment.patient_id,
-                                physiotherapist_id: appointment.physiotherapist_id,
-                                service_master_id: appointment.service_master_id,
-                                therapy_date: appointment.appointment_date,
-                                complaint: appointment.main_complaint || '',
-                                appointment_id: appointment.id
-                              }
-                            }
-                          });
-                        }}>
-                          <FileText className="w-4 h-4 mr-2" />
-                          Mulai Sesi Terapi
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          navigate('/medical-records', {
-                            state: {
-                              createFromAppointment: {
-                                patient_id: appointment.patient_id,
-                                physiotherapist_id: appointment.physiotherapist_id,
-                                service_id: appointment.service_master_id,
-                                examination_date: appointment.appointment_date,
-                                appointment_id: appointment.id
-                              }
-                            }
-                          });
-                        }}>
-                          <FileText className="w-4 h-4 mr-2" />
-                          Buat Rekam Medis
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => handleDelete(appointment.id)}>
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
                 </TableRow>
               ))
             )}

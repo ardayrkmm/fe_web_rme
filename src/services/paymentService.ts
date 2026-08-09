@@ -26,7 +26,7 @@ export interface Payment {
   total: number;
   notes: string | null;
   share_link?: string;
-  details?: PaymentDetail[];
+  payment_details?: PaymentDetail[];
   created_at?: string;
 }
 
