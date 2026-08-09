@@ -52,7 +52,7 @@ export default function Dashboard() {
 
   const appointmentStatusData = rawData?.charts?.appointments || [
     { name: 'Selesai', value: 45 },
-    { name: 'Scheduled', value: 25 },
+    { name: 'Dijadwalkan', value: 25 },
     { name: 'Dibatalkan', value: 5 }
   ];
 
@@ -67,7 +67,7 @@ export default function Dashboard() {
       bgColor: 'bg-primary/10'
     },
     {
-      title: 'Aktif Therapists',
+      title: 'Fisioterapis Aktif',
       value: summary.total_fisioterapi,
       trend: 'Steady',
       trendUp: true,
@@ -85,7 +85,7 @@ export default function Dashboard() {
       bgColor: 'bg-indigo-500/10'
     },
     {
-      title: "Hari Ini's Schedule",
+      title: "Jadwal Hari Ini",
       value: summary.appointment_hari_ini,
       trend: '2 pending',
       trendUp: false,
@@ -100,8 +100,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 pb-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Overview</h1>
-        <p className="text-slate-500 mt-1">Here's what's happening at your clinic today.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Ringkasan</h1>
+        <p className="text-slate-500 mt-1">Berikut adalah aktivitas klinik Anda hari ini.</p>
       </div>
       
       {/* KPI Grid */}
@@ -138,8 +138,8 @@ export default function Dashboard() {
         {/* Main Chart Area */}
         <Card className="col-span-1 lg:col-span-2 border-slate-100 shadow-sm rounded-2xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold text-slate-800">Patient Growth</CardTitle>
-            <CardDescription>Monthly new patient registration over the last 6 months</CardDescription>
+            <CardTitle className="text-lg font-semibold text-slate-800">Pertumbuhan Pasien</CardTitle>
+            <CardDescription>Registrasi pasien baru per bulan selama 6 bulan terakhir</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full mt-4">
@@ -178,7 +178,7 @@ export default function Dashboard() {
         <div className="space-y-6 flex flex-col">
           <Card className="border-slate-100 shadow-sm rounded-2xl flex-1">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold text-slate-800">Appointment Status</CardTitle>
+              <CardTitle className="text-lg font-semibold text-slate-800">Status Janji Terapi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[180px] w-full mt-2">
@@ -204,9 +204,9 @@ export default function Dashboard() {
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
                 <ClipboardList className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold mb-1">Generate Weekly Report</h3>
+              <h3 className="text-lg font-semibold mb-1">Buat Laporan Mingguan</h3>
               <p className="text-primary-foreground/80 text-sm mb-4">
-                Download a comprehensive summary of all clinic activities.
+                Unduh ringkasan komprehensif seluruh aktivitas klinik.
               </p>
               <button className="bg-white text-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors self-start shadow-sm">
                 Download PDF
