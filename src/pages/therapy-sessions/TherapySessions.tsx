@@ -329,6 +329,14 @@ export default function TherapySessions() {
         return therapySessionService.updateTherapySession(sessionId, {
           ...session,
           status: 'completed',
+        }).then(resSession => {
+          return appointmentService.updateAppointment(session.appointment_id, {
+            patient_id: session.patient_id,
+            physiotherapist_id: session.physiotherapist_id,
+            service_master_id: session.service_master_id,
+            appointment_date: session.therapy_date,
+            status: 'completed',
+          }).then(() => resSession);
         });
       });
     },
