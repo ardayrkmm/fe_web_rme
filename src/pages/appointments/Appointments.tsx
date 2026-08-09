@@ -59,9 +59,32 @@ export default function Appointments() {
     refetchInterval: 3000, // Near-realtime polling every 3 seconds
   });
 
-  const appointments = Array.isArray(response?.data?.data) ? response.data.data :
+  const rawAppointments = Array.isArray(response?.data?.data) ? response.data.data :
                        Array.isArray(response?.data) ? response.data :
                        Array.isArray(response) ? response : [];
+
+  // Deduplicate appointments by date, time, and physiotherapist, keeping the newest one
+  const appointmentsMap = new Map();
+  rawAppointments.forEach((apt: any) => {
+    const aptDateStr = apt.appointment_date ? new Date(apt.appointment_date).toLocaleDateString('en-CA') : 'unknown';
+    const key = `${aptDateStr}_${apt.appointment_time}_${apt.physiotherapist_id}`;
+    
+    if (!appointmentsMap.has(key)) {
+      appointmentsMap.set(key, apt);
+    } else {
+      const existing = appointmentsMap.get(key);
+      const existingDate = new Date(existing.created_at || 0).getTime();
+      const newDate = new Date(apt.created_at || 0).getTime();
+      if (newDate > existingDate) {
+        appointmentsMap.set(key, apt);
+      }
+    }
+  });
+  
+  // Sort back by created_at desc so newest appears at the top
+  const appointments = Array.from(appointmentsMap.values()).sort((a: any, b: any) => {
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  });
 
   const deleteMutation = useMutation({
     mutationFn: appointmentService.deleteAppointment,
