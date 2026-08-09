@@ -29,7 +29,6 @@ const navigation = [
   { name: 'Data Janji Terapi', href: '/appointments', icon: Calendar, allowedRoles: ['admin', 'owner'] },
   { name: 'Sesi Terapi', href: '/therapy-sessions', icon: Activity, allowedRoles: ['admin', 'owner', 'fisioterapis'] },
   { name: 'Rekam Medis', href: '/medical-records', icon: ClipboardList, allowedRoles: ['admin', 'owner', 'fisioterapis'] },
-  { name: 'Pembayaran', href: '/payments', icon: Banknote, allowedRoles: ['admin', 'owner'] },
 ];
 
 export default function Sidebar({ open, setOpen }: SidebarProps) {

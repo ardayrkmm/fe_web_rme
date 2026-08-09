@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { useReactToPrint } from 'react-to-print';
 import { medicalRecordService } from '../../services/medicalRecordService';
 import {
   flexRender,
