@@ -671,7 +671,7 @@ export default function TherapySessions() {
                       </Button>
                     )}
 
-                    {selectedSlot.data.status_code !== 'completed' && selectedSlot.data.appointment?.status === 'telah_tiba' && (
+                    {selectedSlot.data.status_code !== 'completed' && ['telah_tiba', 'ongoing'].includes(selectedSlot.data.appointment?.status) && (
                       <Button onClick={handleStartSession} className="bg-orange-500 hover:bg-orange-600">
                         {selectedSlot.data.therapy_session?.status === 'ongoing' ? 'Selesaikan Sesi' : 'Mulai Sesi'}
                       </Button>
