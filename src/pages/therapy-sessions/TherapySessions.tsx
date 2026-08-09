@@ -680,7 +680,7 @@ export default function TherapySessions() {
                 )}
                 
                 {!isPhysio && selectedSlot.data.status_code === 'completed' && (
-                  <Button onClick={() => navigate('/payments', {
+                  <Button onClick={() => navigate('/payments/new', {
                     state: {
                       createFromSession: selectedSlot.data
                     }
