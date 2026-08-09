@@ -287,7 +287,19 @@ export default function TherapySessions() {
 
   const createSessionMutation = useMutation({
     mutationFn: (data: any) => {
-      return therapySessionService.createTherapySession(data);
+      return appointmentService.getAppointment(data.appointment_id).then(resApt => {
+        const appointment = resApt.data;
+        return therapySessionService.createTherapySession(data).then(resSession => {
+          return appointmentService.updateAppointment(data.appointment_id, {
+            patient_id: appointment.patient_id,
+            physiotherapist_id: appointment.physiotherapist_id,
+            service_master_id: appointment.service_master_id,
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time?.substring(0, 5),
+            status: 'ongoing',
+          }).then(() => resSession);
+        });
+      });
     },
     onSuccess: (res) => {
       toast.success('Sesi Terapi dimulai');
