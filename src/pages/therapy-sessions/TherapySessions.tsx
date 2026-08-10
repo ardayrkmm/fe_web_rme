@@ -370,6 +370,30 @@ export default function TherapySessions() {
     onError: (error: any) => toast.error(error?.response?.data?.message || error?.message || 'Gagal menyelesaikan sesi'),
   });
 
+  const deleteSessionMutation = useMutation({
+    mutationFn: (sessionId: number) => {
+      return therapySessionService.deleteTherapySession(sessionId);
+    },
+    onSuccess: () => {
+      toast.success('Sesi Terapi berhasil dibatalkan dan dihapus');
+      setIsDetailOpen(false);
+      refetch();
+    },
+    onError: (error: any) => toast.error(error?.response?.data?.message || error?.message || 'Gagal membatalkan sesi'),
+  });
+
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: (appointmentId: number) => {
+      return appointmentService.cancelAppointment(appointmentId);
+    },
+    onSuccess: () => {
+      toast.success('Janji Terapi berhasil dibatalkan');
+      setIsDetailOpen(false);
+      refetch();
+    },
+    onError: (error: any) => toast.error(error?.response?.data?.message || error?.message || 'Gagal membatalkan janji'),
+  });
+
   const handleSlotClick = (slot: any, physio: any, dateStr: string) => {
       if (slot.is_empty) {
         if (isPhysio) {
@@ -680,19 +704,47 @@ export default function TherapySessions() {
                 )) && (
                   <>
                     {['pending', 'approved', 'scheduled'].includes(selectedSlot.data.appointment?.status) && (
-                      <Button 
-                        onClick={handleCheckIn} 
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                        disabled={checkInMutation.isPending}
-                      >
-                        {checkInMutation.isPending ? 'Memproses...' : 'Pasien Datang'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm('Yakin ingin membatalkan Janji Terapi ini?')) {
+                              cancelAppointmentMutation.mutate(selectedSlot.data.appointment.id);
+                            }
+                          }}
+                          disabled={cancelAppointmentMutation.isPending}
+                        >
+                          {cancelAppointmentMutation.isPending ? 'Membatalkan...' : 'Batalkan Janji'}
+                        </Button>
+                        <Button 
+                          onClick={handleCheckIn} 
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                          disabled={checkInMutation.isPending}
+                        >
+                          {checkInMutation.isPending ? 'Memproses...' : 'Pasien Datang'}
+                        </Button>
+                      </div>
                     )}
 
                     {selectedSlot.data.status_code !== 'completed' && ['telah_tiba', 'ongoing'].includes(selectedSlot.data.appointment?.status) && (
-                      <Button onClick={handleStartSession} className="bg-orange-500 hover:bg-orange-600">
-                        {selectedSlot.data.therapy_session?.status === 'ongoing' ? 'Selesaikan Sesi' : 'Mulai Sesi'}
-                      </Button>
+                      <div className="flex gap-2">
+                        {selectedSlot.data.therapy_session?.id && (
+                          <Button 
+                            variant="destructive" 
+                            onClick={() => {
+                              if (confirm('Yakin ingin membatalkan dan menghapus sesi terapi ini?')) {
+                                deleteSessionMutation.mutate(selectedSlot.data.therapy_session.id);
+                              }
+                            }}
+                            disabled={deleteSessionMutation.isPending}
+                          >
+                            {deleteSessionMutation.isPending ? 'Membatalkan...' : 'Batalkan Sesi'}
+                          </Button>
+                        )}
+                        <Button onClick={handleStartSession} className="bg-orange-500 hover:bg-orange-600">
+                          {selectedSlot.data.therapy_session?.status === 'ongoing' ? 'Selesaikan Sesi' : 'Mulai Sesi'}
+                        </Button>
+                      </div>
                     )}
                   </>
                 )}

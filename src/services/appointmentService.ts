@@ -34,5 +34,9 @@ export const appointmentService = {
   deleteAppointment: async (id: number) => {
     const res = await apiClient.delete(`/appointments/${id}`);
     return res.data;
+  },
+  cancelAppointment: async (id: number) => {
+    const res = await apiClient.post(`/appointments/${id}/cancel`);
+    return res.data;
   }
 };
