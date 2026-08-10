@@ -224,7 +224,7 @@ export function PhysiotherapistForm({ initialData, onSuccess, onCancel }: Physio
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password Akun (Akan otomatis dibuatkan akses Fisioterapis)</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input 

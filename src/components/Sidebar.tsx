@@ -28,7 +28,8 @@ const navigation = [
   { name: 'Data Layanan (Layanan)', href: '/services', icon: Layers, allowedRoles: ['admin', 'owner'] },
   { name: 'Data Janji Terapi', href: '/appointments', icon: Calendar, allowedRoles: ['admin', 'owner'] },
   { name: 'Sesi Terapi', href: '/therapy-sessions', icon: Activity, allowedRoles: ['admin', 'owner', 'fisioterapis'] },
-  { name: 'Rekam Medis', href: '/medical-records', icon: ClipboardList, allowedRoles: ['admin', 'owner', 'fisioterapis'] },
+  { name: 'Rekam Medis', href: '/medical-records', icon: ClipboardList, allowedRoles: ['admin', 'owner'] },
+  { name: 'Pembayaran', href: '/payments', icon: Banknote, allowedRoles: ['admin', 'owner'] },
 ];
 
 export default function Sidebar({ open, setOpen }: SidebarProps) {
@@ -100,17 +101,6 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
         </nav>
         
         
-        {userRole === 'admin' && (
-          <div className="p-4 border-t border-slate-100">
-            <Link
-              to="/settings"
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200"
-            >
-              <Settings className="w-5 h-5 text-slate-400" />
-              Pengaturan
-            </Link>
-          </div>
-        )}
       </div>
     </>
   );

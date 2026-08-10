@@ -371,17 +371,28 @@ export default function TherapySessions() {
   });
 
   const handleSlotClick = (slot: any, physio: any, dateStr: string) => {
-    if (slot.is_empty) {
-      if (isPhysio) {
-        toast.info('Hanya admin yang dapat membuat jadwal terapi.');
-        return;
+      if (slot.is_empty) {
+        if (isPhysio) {
+          toast.info('Hanya admin yang dapat membuat jadwal terapi.');
+          return;
+        }
+        setSelectedSlot({ ...slot, physio, date: dateStr });
+        setIsAppointmentFormOpen(true);
+      } else {
+        if (isPhysio && slot.data) {
+          const item = slot.data;
+          const isOwn = Boolean(
+            (user?.email && item.physiotherapist_email && user.email.toLowerCase() === item.physiotherapist_email.toLowerCase()) || 
+            (user?.name && item.physiotherapist_name && user.name.toLowerCase() === item.physiotherapist_name.toLowerCase())
+          );
+          if (!isOwn) {
+            toast.info('Ini adalah jadwal fisioterapis lain.');
+            return;
+          }
+        }
+        setSelectedSlot({ ...slot, date: dateStr });
+        setIsDetailOpen(true);
       }
-      setSelectedSlot({ ...slot, physio, date: dateStr });
-      setIsAppointmentFormOpen(true);
-    } else {
-      setSelectedSlot({ ...slot, date: dateStr });
-      setIsDetailOpen(true);
-    }
   };
 
   const handleCheckIn = () => {
@@ -544,11 +555,16 @@ export default function TherapySessions() {
                           <div key={rowIndex} className="space-y-2">
                             {slot.items.map((item: any, itemIndex: number) => {
                               const isCompleted = item.status_code === 'completed';
-                              const bgColorClass = isCompleted ? 'bg-green-50' : 'bg-blue-50';
-                              const borderColorClass = isCompleted ? 'border-green-100' : 'border-blue-100';
-                              const textColorClass = isCompleted ? 'text-green-700' : 'text-blue-700';
+                                const bgColorClass = isCompleted ? 'bg-green-50' : 'bg-blue-50';
+                                const borderColorClass = isCompleted ? 'border-green-100' : 'border-blue-100';
+                                const textColorClass = isCompleted ? 'text-green-700' : 'text-blue-700';
 
-                              return (
+                                const isOwnSession = !isPhysio || Boolean(
+                                  (user?.email && item.physiotherapist_email && user.email.toLowerCase() === item.physiotherapist_email.toLowerCase()) || 
+                                  (user?.name && item.physiotherapist_name && user.name.toLowerCase() === item.physiotherapist_name.toLowerCase())
+                                );
+  
+                                return (
                                 <div 
                                   key={itemIndex}
                                   onClick={() => handleSlotClick({...slot, data: item}, physioSchedule.physiotherapist, activeDateStr)}
@@ -561,22 +577,21 @@ export default function TherapySessions() {
                                   </div>
                                   
                                   <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                    <div>
-                                      <div className={`font-bold text-base ${isCompleted ? 'text-green-900' : 'text-slate-800'}`}>
-                                        {item.patient_name}
-                                      </div>
-                                      <div className={`text-sm mt-0.5 flex items-center gap-1.5 ${isCompleted ? 'text-green-800' : 'text-slate-600'}`}>
-                                        <Stethoscope className="w-3.5 h-3.5 opacity-70" />
-                                        <span>{getServiceName(item)}</span>
-                                        {physioSchedule.physiotherapist.id === 'all' && (
-                                          <>
-                                            <span className="opacity-50 mx-1">•</span>
-                                            <span>Fisio: {item.physiotherapist_name}</span>
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <Badge 
+                                      <div>
+                                        <div className={`font-bold text-base ${isCompleted ? 'text-green-900' : 'text-slate-800'}`}>
+                                          {isPhysio && !isOwnSession ? 'Jadwal Terisi' : item.patient_name}
+                                        </div>
+                                        <div className={`text-sm mt-0.5 flex items-center gap-1.5 ${isCompleted ? 'text-green-800' : 'text-slate-600'}`}>
+                                          <Stethoscope className="w-3.5 h-3.5 opacity-70" />
+                                          <span>{isPhysio && !isOwnSession ? 'Sesi Fisioterapis Lain' : getServiceName(item)}</span>
+                                          {(!isPhysio || isOwnSession) && physioSchedule.physiotherapist.id === 'all' && (
+                                            <>
+                                              <span className="opacity-50 mx-1">•</span>
+                                              <span>Fisio: {item.physiotherapist_name}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>  <Badge 
                                       variant="outline" 
                                       className={`${isCompleted ? 'bg-green-100 text-green-700 border-green-200' : 'bg-blue-100 text-blue-700 border-blue-200'} whitespace-nowrap`}
                                     >
@@ -659,7 +674,10 @@ export default function TherapySessions() {
                   Tutup
                 </Button>
                 
-                {(!isPhysio || user?.email?.toLowerCase() === selectedSlot?.data?.physiotherapist_email?.toLowerCase() || user?.name?.toLowerCase() === selectedSlot?.data?.physiotherapist_name?.toLowerCase()) && (
+                {(!isPhysio || Boolean(
+                  (user?.email && selectedSlot?.data?.physiotherapist_email && user.email.toLowerCase() === selectedSlot.data.physiotherapist_email.toLowerCase()) || 
+                  (user?.name && selectedSlot?.data?.physiotherapist_name && user.name.toLowerCase() === selectedSlot.data.physiotherapist_name.toLowerCase())
+                )) && (
                   <>
                     {['pending', 'approved', 'scheduled'].includes(selectedSlot.data.appointment?.status) && (
                       <Button 
@@ -680,12 +698,8 @@ export default function TherapySessions() {
                 )}
                 
                 {!isPhysio && selectedSlot.data.status_code === 'completed' && (
-                  <Button onClick={() => navigate('/payments/new', {
-                    state: {
-                      createFromSession: selectedSlot.data
-                    }
-                  })} className="bg-green-600 hover:bg-green-700">
-                    Lanjut ke Pembayaran
+                  <Button onClick={() => navigate('/payments')} className="bg-green-600 hover:bg-green-700">
+                    Buka Riwayat Pembayaran
                   </Button>
                 )}
 

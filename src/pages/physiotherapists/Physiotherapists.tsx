@@ -30,7 +30,7 @@ import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { downloadBlob, exportToPDF } from '../../utils/exportUtils';
+import { downloadBlob, exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
 interface Physiotherapist {
@@ -60,14 +60,29 @@ export default function Physiotherapists() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      // @ts-ignore
-      const blob = await physiotherapistService.exportCsv(search, status);
+      const res = await physiotherapistService.getPhysiotherapists(1, 1000, search);
+      const records = res.data?.data || [];
+      if (records.length === 0) {
+        toast.error('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      const rows = records.map((r: any, index: number) => ({
+        'No': index + 1,
+        'Nama': r.name,
+        'Spesialisasi': r.specialization || '-',
+        'SIP': r.sip || '-',
+        'Telepon': r.phone || '-',
+        'Email': r.email || '-',
+        'Status': r.status === 'active' || r.status === 'Aktif' ? 'Aktif' : 'Tidak Aktif'
+      }));
+      
       const date = new Date().toISOString().split('T')[0];
-      downloadBlob(blob, `physiotherapists_${date}.csv`);
-      toast.success('File CSV berhasil diunduh');
+      await exportToExcelStyled('Arummy Fisioterapi', 'Data Fisioterapis', rows, `fisioterapis_${date}.xlsx`);
+      toast.success('File Excel berhasil diunduh');
     } catch (error) {
       handleApiError(error);
-      toast.error('Gagal mengunduh file CSV');
+      toast.error('Gagal mengekspor file Excel');
     } finally {
       setIsExporting(false);
     }
@@ -228,7 +243,7 @@ export default function Physiotherapists() {
             disabled={isExporting}
           >
             <Download className="w-4 h-4 mr-2" />
-            CSV
+            Excel
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAdd}>
             <Plus className="w-4 h-4 mr-2" />
@@ -246,7 +261,10 @@ export default function Physiotherapists() {
                 placeholder="Cari fisioterapis..." 
                 className="pl-8" 
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPageIndex(0);
+                }}
               />
             </div>
           </div>

@@ -4,13 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Users, Calendar, Activity, TrendingUp, Clock, ClipboardList } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Legend, Cell
+  BarChart, Bar, Cell
 } from 'recharts';
+import { exportToPDF } from '../utils/exportUtils';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function Dashboard() {
+  const { user } = useAuthStore();
+  const isPhysio = user?.role === 'fisioterapis';
+
   const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: () => dashboardService.getDashboardSummary(),
+    queryKey: ['dashboard', isPhysio],
+    queryFn: () => isPhysio ? dashboardService.getFisioDashboard() : dashboardService.getDashboardSummary(),
   });
 
   if (isLoading) {
@@ -42,21 +47,52 @@ export default function Dashboard() {
     total_fisioterapi: 0,
     total_appointment: 0,
     appointment_hari_ini: 0,
+    today_appointments: 0,
+    today_therapy_sessions: 0,
+    today_patients: 0
   };
 
   const patientChartData = rawData?.charts?.patients || [
-    { month: 'Jan', total: 12 }, { month: 'Feb', total: 19 },
-    { month: 'Mar', total: 15 }, { month: 'Apr', total: 22 },
-    { month: 'May', total: 28 }, { month: 'Jun', total: 34 }
+    { month: 'Jan', total: 0 }, { month: 'Feb', total: 0 },
+    { month: 'Mar', total: 0 }, { month: 'Apr', total: 0 },
+    { month: 'May', total: 0 }, { month: 'Jun', total: 0 }
   ];
 
   const appointmentStatusData = rawData?.charts?.appointments || [
-    { name: 'Selesai', value: 45 },
-    { name: 'Dijadwalkan', value: 25 },
-    { name: 'Dibatalkan', value: 5 }
+    { name: 'Selesai', value: 0 },
+    { name: 'Dijadwalkan', value: 0 },
+    { name: 'Dibatalkan', value: 0 }
   ];
 
-  const stats = [
+  const stats = isPhysio ? [
+    {
+      title: 'Janji Terapi',
+      value: summary.today_appointments || 0,
+      trend: 'Hari ini',
+      trendUp: true,
+      icon: Calendar,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-500/10'
+    },
+    {
+      title: 'Sesi Terapi',
+      value: summary.today_therapy_sessions || 0,
+      trend: 'Hari ini',
+      trendUp: true,
+      icon: Activity,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-500/10'
+    },
+    {
+      title: 'Pasien',
+      value: summary.today_patients || 0,
+      trend: 'Hari ini',
+      trendUp: true,
+      icon: Users,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-500/10'
+    }
+  ] : [
     {
       title: 'Total Data Pasien',
       value: summary.total_pasien,
@@ -85,7 +121,7 @@ export default function Dashboard() {
       bgColor: 'bg-indigo-500/10'
     },
     {
-      title: "Jadwal Hari Ini",
+      title: 'Jadwal Hari Ini',
       value: summary.appointment_hari_ini,
       trend: '2 pending',
       trendUp: false,
@@ -97,15 +133,33 @@ export default function Dashboard() {
 
   const COLORS = ['#3b82f6', '#10b981', '#f43f5e', '#f59e0b'];
 
+  const handleGenerateWeeklyReport = () => {
+    const columns = ['Indikator Kinerja Klinik', 'Jumlah Data'];
+    const reportData = [
+      ['Total Pasien Terdaftar', summary.total_pasien],
+      ['Total Fisioterapis Aktif', summary.total_fisioterapi],
+      ['Total Seluruh Janji Terapi', summary.total_appointment],
+      ['Jadwal Terapi Hari Ini', summary.appointment_hari_ini],
+      ['Janji Terapi Selesai', appointmentStatusData.find((d: any) => d.name === 'Selesai')?.value || 0],
+      ['Janji Terapi Dijadwalkan', appointmentStatusData.find((d: any) => d.name === 'Dijadwalkan')?.value || 0],
+      ['Janji Terapi Dibatalkan', appointmentStatusData.find((d: any) => d.name === 'Dibatalkan')?.value || 0],
+    ];
+    exportToPDF('Ringkasan Mingguan Aktivitas Klinik', columns, reportData);
+  };
+
   return (
     <div className="space-y-8 pb-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Ringkasan</h1>
-        <p className="text-slate-500 mt-1">Berikut adalah aktivitas klinik Anda hari ini.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          {isPhysio ? 'Dashboard Fisioterapis' : 'Ringkasan'}
+        </h1>
+        <p className="text-slate-500 mt-1">
+          {isPhysio ? 'Aktivitas Anda hari ini.' : 'Berikut adalah aktivitas klinik hari ini.'}
+        </p>
       </div>
       
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 ${isPhysio ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
         {stats.map((stat, index) => (
           <Card key={index} className="overflow-hidden border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 rounded-2xl">
             <CardContent className="p-6">
@@ -122,7 +176,7 @@ export default function Dashboard() {
                     <span className={`text-xs font-medium ${stat.trendUp ? 'text-emerald-600' : 'text-slate-500'}`}>
                       {stat.trend}
                     </span>
-                    <span className="text-xs text-slate-400 ml-1">vs last month</span>
+                    {!isPhysio && <span className="text-xs text-slate-400 ml-1">vs last month</span>}
                   </div>
                 </div>
                 <div className={`p-3 rounded-xl ${stat.bgColor} shadow-inner`}>
@@ -133,13 +187,17 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
-
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chart Area */}
         <Card className="col-span-1 lg:col-span-2 border-slate-100 shadow-sm rounded-2xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold text-slate-800">Pertumbuhan Pasien</CardTitle>
-            <CardDescription>Registrasi pasien baru per bulan selama 6 bulan terakhir</CardDescription>
+            <CardTitle className="text-lg font-semibold text-slate-800">
+              {isPhysio ? 'Pertumbuhan Pasien Anda' : 'Pertumbuhan Pasien Klinik'}
+            </CardTitle>
+            <CardDescription>
+              {isPhysio ? 'Pasien unik per bulan selama 6 bulan terakhir' : 'Registrasi pasien baru per bulan selama 6 bulan terakhir'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full mt-4">
@@ -152,21 +210,9 @@ export default function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="month" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: '#94a3b8', fontSize: 12}} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{fill: '#94a3b8', fontSize: 12}} 
-                  />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                   <Area type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -178,7 +224,12 @@ export default function Dashboard() {
         <div className="space-y-6 flex flex-col">
           <Card className="border-slate-100 shadow-sm rounded-2xl flex-1">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold text-slate-800">Status Janji Terapi</CardTitle>
+              <CardTitle className="text-lg font-semibold text-slate-800">
+                {isPhysio ? 'Status Janji Terapi Anda' : 'Status Janji Terapi Klinik'}
+              </CardTitle>
+              <CardDescription>
+                {isPhysio ? 'Distribusi status janji terapi Anda bulan ini' : 'Distribusi status janji terapi klinik bulan ini'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[180px] w-full mt-2">
@@ -199,20 +250,25 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-100 shadow-sm rounded-2xl flex-1 bg-primary text-white">
-            <CardContent className="p-6 flex flex-col justify-center h-full">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                <ClipboardList className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold mb-1">Buat Laporan Mingguan</h3>
-              <p className="text-primary-foreground/80 text-sm mb-4">
-                Unduh ringkasan komprehensif seluruh aktivitas klinik.
-              </p>
-              <button className="bg-white text-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors self-start shadow-sm">
-                Download PDF
-              </button>
-            </CardContent>
-          </Card>
+          {!isPhysio && (
+            <Card className="border-slate-100 shadow-sm rounded-2xl flex-1 bg-primary text-white">
+              <CardContent className="p-6 flex flex-col justify-center h-full">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
+                  <ClipboardList className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">Buat Laporan Mingguan</h3>
+                <p className="text-primary-foreground/80 text-sm mb-4">
+                  Unduh ringkasan komprehensif seluruh aktivitas klinik.
+                </p>
+                <button 
+                  onClick={handleGenerateWeeklyReport}
+                  className="bg-white text-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors self-start shadow-sm"
+                >
+                  Download PDF
+                </button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

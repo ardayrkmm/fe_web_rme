@@ -21,12 +21,7 @@ export const patientService = {
     const res = await apiClient.delete(`/patients/${id}`);
     return res.data;
   },
-  exportCsv: async (search = '') => {
-    const res = await apiClient.get(`/patients/export/csv?search=${search}`, {
-      responseType: 'blob'
-    });
-    return res.data;
-  },
+
   getCategories: async () => {
     const res = await apiClient.get('/patient-categories');
     return res.data;

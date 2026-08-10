@@ -118,11 +118,13 @@ export default function PaymentForm() {
   const total = subtotal - Number(watchDiscount) + Number(watchTax);
 
   const onSubmit = (data: PaymentFormValues) => {
-    const formattedData = {
+    const formattedData: any = {
       ...data,
+      payment_details: data.details,
       payment_date: data.payment_date ? new Date(data.payment_date).toISOString() : undefined,
     };
-    mutation.mutate(formattedData as any);
+    delete formattedData.details;
+    mutation.mutate(formattedData);
   };
 
   // If a session is selected, auto-fill patient and physio

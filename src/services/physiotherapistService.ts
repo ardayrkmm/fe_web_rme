@@ -21,12 +21,7 @@ export const physiotherapistService = {
     const res = await apiClient.post(`/physiotherapists/${id}/restore`);
     return res.data;
   },
-  exportCsv: async (search = '', status = '') => {
-    const res = await apiClient.get(`/physiotherapists/export/csv?search=${search}&status=${status}`, {
-      responseType: 'blob'
-    });
-    return res.data;
-  },
+
   deletePhysiotherapist: async (id: number) => {
     const res = await apiClient.delete(`/physiotherapists/${id}`);
     return res.data;

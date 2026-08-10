@@ -228,13 +228,13 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
                 </FormItem>
               )}
             />
-            <FormItem>
-              <FormLabel>Fisioterapisnya *</FormLabel>
-              <div className="flex items-center h-10 px-3 rounded-md border border-slate-200 bg-slate-50 text-sm text-slate-700">
-                {currentPhysio?.name || user?.name || 'Anda (otomatis)'}
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Fisioterapisnya *</label>
+                <div className="flex items-center h-10 px-3 rounded-md border border-slate-200 bg-slate-50 text-sm text-slate-700">
+                  {currentPhysio?.name || user?.name || 'Anda (otomatis)'}
+                </div>
+                <p className="text-[0.8rem] text-slate-500">Otomatis diisi sebagai fisioterapis yang login</p>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Otomatis diisi sebagai fisioterapis yang login</p>
-            </FormItem>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">

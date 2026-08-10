@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
 import { Badge } from '../../components/ui/badge';
 
-import { downloadBlob } from '../../utils/exportUtils';
+import { downloadBlob, exportToExcelStyled } from '../../utils/exportUtils';
 
 export default function ServiceMasterList() {
   const queryClient = useQueryClient();
@@ -45,14 +45,30 @@ export default function ServiceMasterList() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      // Pass category and isActive if they are added as state later. Right now we only have search.
-      const blob = await serviceMasterService.exportCsv(search, '', '');
+      const res = await serviceMasterService.getServices(1, 1000, search);
+      const records = res.data?.data || [];
+      if (records.length === 0) {
+        toast.error('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      const rows = records.map((r: any, index: number) => ({
+        'No': index + 1,
+        'Kode Layanan': r.service_code || '-',
+        'Kategori': r.category?.name || '-',
+        'Nama Layanan': r.name,
+        'Deskripsi': r.description || '-',
+        'Harga': r.price ? `Rp ${Number(r.price).toLocaleString('id-ID')}` : 'Rp 0',
+        'Durasi (Menit)': r.duration_minutes || '-',
+        'Status': r.is_active ? 'Aktif' : 'Tidak Aktif'
+      }));
+      
       const date = new Date().toISOString().split('T')[0];
-      downloadBlob(blob, `services_${date}.csv`);
-      toast.success('File CSV berhasil diunduh');
+      await exportToExcelStyled('Arummy Fisioterapi', 'Data Layanan', rows, `layanan_${date}.xlsx`);
+      toast.success('File Excel berhasil diunduh');
     } catch (error) {
       handleApiError(error);
-      toast.error('Gagal mengunduh file CSV');
+      toast.error('Gagal mengekspor file Excel');
     } finally {
       setIsExporting(false);
     }
@@ -159,7 +175,7 @@ export default function ServiceMasterList() {
             disabled={isExporting}
           >
             <Download className="w-4 h-4 mr-2" />
-            {isExporting ? 'Mengekspor...' : 'Ekspor CSV'}
+            {isExporting ? 'Mengekspor...' : 'Ekspor Excel'}
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAdd}>
             <Plus className="w-4 h-4 mr-2" />
@@ -177,7 +193,10 @@ export default function ServiceMasterList() {
                 placeholder="Cari layanan..." 
                 className="pl-8" 
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPageIndex(0);
+                }}
               />
             </div>
           </div>

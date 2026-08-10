@@ -65,11 +65,6 @@ export default function Topbar({ setSidebarOpen }: TopbarProps) {
           />
         </div>
 
-        <button className="text-slate-400 hover:text-primary transition-colors relative p-2 rounded-full hover:bg-primary/5">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full ring-2 ring-white"></span>
-        </button>
-
         <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block" />
 
         <div className="flex items-center gap-3">

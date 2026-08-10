@@ -141,3 +141,57 @@ export const downloadBlob = (blob: Blob, filename: string) => {
   a.remove();
   window.URL.revokeObjectURL(url);
 };
+
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
+export const exportToExcelStyled = async (mainTitle: string, subTitle: string, data: any[], filename: string) => {
+  if (!data || data.length === 0) return;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Data');
+
+  const keys = Object.keys(data[0]);
+  worksheet.mergeCells('A1:B1');
+  const titleCell = worksheet.getCell('A1');
+  titleCell.value = mainTitle;
+  titleCell.font = { name: 'Arial', size: 14, bold: true };
+
+  worksheet.mergeCells('C1:D1');
+  const subTitleCell = worksheet.getCell('C1');
+  subTitleCell.value = subTitle;
+  subTitleCell.font = { name: 'Arial', size: 14, bold: true };
+
+  worksheet.addRow([]);
+  const headerRow = worksheet.addRow(keys);
+  headerRow.eachCell((cell, colNumber) => {
+    cell.font = { bold: true };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    if (colNumber <= 3) {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+    } else {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4E4F9' } };
+    }
+  });
+
+  data.forEach((rowData) => {
+    const row = worksheet.addRow(keys.map(k => rowData[k] || '-'));
+    row.eachCell((cell) => {
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    });
+  });
+
+  worksheet.columns.forEach((column) => {
+    let maxLength = 0;
+    column.eachCell({ includeEmpty: true }, (cell) => {
+      const columnLength = cell.value ? cell.value.toString().length : 10;
+      if (columnLength > maxLength) maxLength = columnLength;
+    });
+    column.width = maxLength < 10 ? 10 : maxLength + 2;
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, filename);
+};
+

@@ -29,21 +29,29 @@ import { Plus, Search, MoreVertical, Edit, Trash2, FileText } from 'lucide-react
 import { toast } from 'sonner';
 import { AppointmentForm } from './AppointmentForm';
 import { useAuthStore } from '../../store/useAuthStore';
-import { exportToPDF } from '../../utils/exportUtils';
+import { exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
 import { handleApiError } from '../../utils/errorHandler';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
 export default function Appointments() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageSize = 10;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const isPhysio = user?.role === 'fisioterapis';
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Reset page to 0 when search term changes
+  useEffect(() => {
+    setPageIndex(0);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (location.state?.createFromPatientId) {
@@ -85,6 +93,8 @@ export default function Appointments() {
   const appointments = Array.from(appointmentsMap.values()).sort((a: any, b: any) => {
     return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
+
+  const paginatedAppointments = appointments.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
 
   const deleteMutation = useMutation({
     mutationFn: appointmentService.deleteAppointment,
@@ -158,6 +168,40 @@ export default function Appointments() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const res = await appointmentService.getAppointments(1, 1000, searchTerm);
+      const records = Array.isArray(res?.data?.data) ? res.data.data :
+                      Array.isArray(res?.data) ? res.data :
+                      Array.isArray(res) ? res : [];
+      if (records.length === 0) {
+        toast.error('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      const rows = records.map((r: any, index: number) => ({
+        'No': index + 1,
+        'Tanggal': r.appointment_date ? new Date(r.appointment_date).toLocaleDateString('id-ID') : '-',
+        'Waktu': r.appointment_time || '-',
+        'Pasien': r.patient?.name || '-',
+        'Fisioterapis': r.physiotherapist?.name || '-',
+        'Layanan': r.service_master?.name || '-',
+        'Status': r.status || '-',
+        'Keluhan Utama': r.main_complaint || '-'
+      }));
+      
+      const date = new Date().toISOString().split('T')[0];
+      await exportToExcelStyled('Arummy Fisioterapi', 'Data Janji Terapi', rows, `janji_terapi_${date}.xlsx`);
+      toast.success('File Excel berhasil diunduh');
+    } catch (error) {
+      handleApiError(error);
+      toast.error('Gagal mengekspor file Excel');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending': return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;
@@ -183,12 +227,20 @@ export default function Appointments() {
             <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
               <FileText className="w-4 h-4 mr-2" /> Cetak PDF
             </Button>
+            <Button variant="outline" onClick={handleExportExcel} disabled={isExportingExcel}>
+              <FileText className="w-4 h-4 mr-2" /> Excel
+            </Button>
           </div>
         )}
         {isPhysio && (
-          <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
-            <FileText className="w-4 h-4 mr-2" /> Cetak PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
+              <FileText className="w-4 h-4 mr-2" /> Cetak PDF
+            </Button>
+            <Button variant="outline" onClick={handleExportExcel} disabled={isExportingExcel}>
+              <FileText className="w-4 h-4 mr-2" /> Excel
+            </Button>
+          </div>
         )}
       </div>
 
@@ -219,12 +271,12 @@ export default function Appointments() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-slate-500">Memuat data...</TableCell>
               </TableRow>
-            ) : appointments.length === 0 ? (
+            ) : paginatedAppointments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-slate-500">Tidak ada data janji terapi.</TableCell>
               </TableRow>
             ) : (
-              appointments.map((appointment: any) => (
+              paginatedAppointments.map((appointment: any) => (
                 <TableRow key={appointment.id}>
                   <TableCell>
                     <div className="font-medium text-slate-800">
@@ -241,6 +293,25 @@ export default function Appointments() {
             )}
           </TableBody>
         </Table>
+        
+        <div className="flex items-center justify-end space-x-2 p-4 border-t border-slate-100 bg-white">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPageIndex((old) => Math.max(old - 1, 0))}
+            disabled={pageIndex === 0}
+          >
+            Sebelumnya
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPageIndex((old) => old + 1)}
+            disabled={pageIndex >= Math.ceil(appointments.length / pageSize) - 1 || appointments.length === 0}
+          >
+            Berikutnya
+          </Button>
+        </div>
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>

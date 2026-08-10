@@ -4,8 +4,7 @@ import { paymentService } from '../../services/paymentService';
 import { generateInvoicePdf } from '../../utils/invoicePdf';
 
 import type { Payment } from '../../services/paymentService';
-import { downloadBlob, exportToPDF } from '../../utils/exportUtils';
-import * as XLSX from 'xlsx';
+import { exportToPDF } from '../../utils/exportUtils';
 import {
   flexRender,
   getCoreRowModel,
@@ -233,7 +232,7 @@ export default function PaymentList() {
 
   const payments: Payment[] = data?.data?.data ?? [];
   const lastPage: number = data?.data?.last_page ?? 1;
-  const total: number = data?.data?.total ?? 0;
+  const total: number = data?.data?.data?.total ?? 0;
   const from: number = data?.data?.from ?? 0;
   const to: number = data?.data?.to ?? 0;
 
@@ -241,34 +240,7 @@ export default function PaymentList() {
   const totalAmount = payments.reduce((s, p) => s + Number(p.total), 0);
 
 
-  const handleExportCsv = async () => {
-    try {
-      setIsExporting(true);
-      const records = await fetchAllForExport();
-      if (records.length === 0) {
-        toast.error('Tidak ada data untuk diekspor');
-        return;
-      }
-      const rows = records.map((r: any) => ({
-        'No. Invoice': r.invoice_number || '-',
-        'Tanggal': r.payment_date ? new Date(r.payment_date).toLocaleDateString('id-ID') : '-',
-        'Pasien': r.patient_name || '-',
-        'Fisioterapis': r.physiotherapist_name || '-',
-        'Total': Number(r.total),
-        'Metode': r.payment_method || '-',
-        'Status': r.status || '-',
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Pembayaran');
-      XLSX.writeFile(wb, `pembayaran_${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
-    } catch (error) {
-      toast.error('Gagal mengekspor Excel');
-    } finally {
-      setIsExporting(false);
-    }
-  };
+
 
   const handleExportPdf = async () => {
     try {
@@ -453,10 +425,7 @@ export default function PaymentList() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleExportCsv}>
-                    <FileSpreadsheet className="mr-2 h-4 w-4 text-green-600" />
-                    Ekspor Excel (CSV)
-                  </DropdownMenuItem>
+
                   <DropdownMenuItem onClick={handleExportPdf}>
                     <FileDown className="mr-2 h-4 w-4 text-red-600" />
                     Ekspor PDF

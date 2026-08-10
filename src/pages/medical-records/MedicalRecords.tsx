@@ -34,7 +34,7 @@ import { PrintableMedicalRecord } from './PrintableMedicalRecord';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { exportToPDF } from '../../utils/exportUtils';
+import { exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 import { FileText } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -64,6 +64,7 @@ export default function MedicalRecords() {
   const [printRecord, setPrintRecord] = useState<any>(null);
   const [printRecords, setPrintRecords] = useState<any[] | null>(null);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<any>(null);
   const printComponentRef = useRef<HTMLDivElement>(null);
@@ -207,6 +208,42 @@ export default function MedicalRecords() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const res = await medicalRecordService.getMedicalRecords(1, 1000, search);
+      const records = Array.isArray(res?.data?.data) ? res.data.data :
+                      Array.isArray(res?.data) ? res.data :
+                      Array.isArray(res) ? res : [];
+      if (records.length === 0) {
+        toast.error('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      const rows = records.map((r: any, index: number) => ({
+        'No': index + 1,
+        'No Kunjungan': r.visit_number || '-',
+        'No Rekam Medis': r.patient?.medical_record_number || '-',
+        'Nama Pasien': r.patient?.name || '-',
+        'Tanggal Pemeriksaan': r.examination_date ? new Date(r.examination_date).toLocaleDateString('id-ID') : '-',
+        'Jenis Layanan': r.service?.name || '-',
+        'Fisioterapis': r.physiotherapist?.name || '-',
+        'Diagnosis': r.diagnosis || '-',
+        'Anamnesis': r.anamnesis || '-',
+        'Terapi': r.therapy || '-'
+      }));
+      
+      const date = new Date().toISOString().split('T')[0];
+      await exportToExcelStyled('Arummy Fisioterapi', 'Data Rekam Medis', rows, `rekam_medis_${date}.xlsx`);
+      toast.success('File Excel berhasil diunduh');
+    } catch (error) {
+      handleApiError(error);
+      toast.error('Gagal mengekspor file Excel');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus data rekam medis ini?')) {
       deleteMutation.mutate(id);
@@ -333,9 +370,14 @@ export default function MedicalRecords() {
               <Printer className="w-4 h-4 mr-2" /> Cetak Riwayat
             </Button>
           ) : (
-            <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
-              <FileText className="w-4 h-4 mr-2" /> Cetak PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
+                <FileText className="w-4 h-4 mr-2" /> Cetak PDF
+              </Button>
+              <Button variant="outline" onClick={handleExportExcel} disabled={isExportingExcel}>
+                <FileText className="w-4 h-4 mr-2" /> Excel
+              </Button>
+            </div>
           )}
           {!isHistoryMode && (
             <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAdd}>
@@ -348,24 +390,20 @@ export default function MedicalRecords() {
 
       <Card>
         <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            {!isHistoryMode ? (
+          <div className="mb-6">
+            {!isHistoryMode && (
               <div className="relative w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Cari pasien atau RM..."
                   className="pl-9"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPageIndex(0);
+                  }}
                 />
               </div>
-            ) : (
-              <div></div>
-            )}
-            {!isHistoryMode && (
-              <Button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" /> Tambah Rekam Medis
-              </Button>
             )}
           </div>
           <Table>
@@ -413,7 +451,7 @@ export default function MedicalRecords() {
           </Table>
           <div className="flex items-center justify-between mt-4 text-sm text-slate-500">
             <div>
-              Menampilkan {table.getRowModel().rows.length} dari {isHistoryMode ? records.length : (data?.data?.total || 0)} data
+              Menampilkan {table.getRowModel().rows.length} dari {isHistoryMode ? records.length : (data?.data?.data?.total || 0)} data
             </div>
             <div className="flex gap-2">
               <Button

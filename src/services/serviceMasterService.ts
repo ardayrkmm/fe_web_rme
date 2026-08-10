@@ -34,15 +34,5 @@ export const serviceMasterService = {
     const res = await apiClient.delete(`/service-masters/${id}`);
     return res.data;
   },
-  exportCsv: async (search = '', category = '', isActive = '') => {
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (category) params.append('category', category);
-    if (isActive !== '') params.append('is_active', isActive);
 
-    const res = await apiClient.get(`/service-masters/export/csv?${params.toString()}`, {
-      responseType: 'blob'
-    });
-    return res.data;
-  }
 };

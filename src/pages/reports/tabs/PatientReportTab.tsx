@@ -17,7 +17,18 @@ export default function PatientReportTab() {
     queryFn: () => patientService.getPatients(1, 1000, searchTerm),
   });
 
+  const { data: gendersData } = useQuery({
+    queryKey: ['genders-list'],
+    queryFn: () => patientService.getGenders(),
+  });
+
   const records = data?.data?.data || [];
+
+  const getGenderName = (id: string, fallback: string) => {
+    if (!id && !fallback) return '-';
+    const gen = gendersData?.data?.find((g: any) => String(g.id) === String(id) || String(g.id) === String(fallback));
+    return gen ? gen.name : (fallback || id || '-');
+  };
 
   const handleExportPDF = () => {
     const columns = ['ID', 'Nama', 'Tanggal Lahir', 'Jenis Kelamin', 'Telepon', 'Alamat'];
@@ -93,7 +104,7 @@ export default function PatientReportTab() {
                     <TableCell>{r.medical_record_number || '-'}</TableCell>
                     <TableCell>{r.name}</TableCell>
                     <TableCell>{r.birth_date ? new Date(r.birth_date).toLocaleDateString() : '-'}</TableCell>
-                    <TableCell>{r.gender_data?.name || r.gender || '-'}</TableCell>
+                    <TableCell>{getGenderName(r.gender_id, r.gender)}</TableCell>
                     <TableCell>{r.phone || '-'}</TableCell>
                   </TableRow>
                 ))

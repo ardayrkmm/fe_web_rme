@@ -30,7 +30,7 @@ import { PatientForm } from './PatientForm';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { downloadBlob, exportToPDF } from '../../utils/exportUtils';
+import { downloadBlob, exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
 interface Patient {
@@ -81,17 +81,41 @@ export default function Patients() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const blob = await patientService.exportCsv(search);
+      const res = await patientService.getPatients(1, 1000, search);
+      const records = res.data?.data || [];
+      if (records.length === 0) {
+        toast.error('Tidak ada data untuk diekspor');
+        return;
+      }
+      
+      const rows = records.map((r: any, index: number) => {
+        const genderName = r.gender_data?.name || r.gender || '-';
+        
+        return {
+          'No': index + 1,
+          'No. RM': r.medical_record_number,
+          'NIK': r.nik || '-',
+          'Nama Pasien': r.name,
+          'Tanggal Lahir': r.birth_date ? new Date(r.birth_date).toLocaleDateString('id-ID') : '-',
+          'Jenis Kelamin': genderName,
+          'Telepon': r.phone || '-',
+          'Email': r.email || '-',
+          'Pekerjaan': r.occupation || '-',
+          'Alamat': r.address || '-'
+        };
+      });
+      
       const date = new Date().toISOString().split('T')[0];
-      downloadBlob(blob, `patients_${date}.csv`);
-      toast.success('File CSV berhasil diunduh');
+      await exportToExcelStyled('Arummy Fisioterapi', 'Data Pasien', rows, `pasien_${date}.xlsx`);
+      toast.success('File Excel berhasil diunduh');
     } catch (error) {
       handleApiError(error);
-      toast.error('Gagal mengunduh file CSV');
+      toast.error('Gagal mengekspor file Excel');
     } finally {
       setIsExporting(false);
     }
   };
+
 
   const handleExportPDF = async (mode: 'all' | 'month', monthStr?: string) => {
     try {
@@ -125,8 +149,7 @@ export default function Patients() {
         const cat = categoriesData?.data?.find((c: any) => String(c.id) === String(r.patient_category_id));
         const categoryName = cat ? cat.name : '-';
         
-        const gen = gendersData?.data?.find((g: any) => String(g.id) === String(r.gender_id));
-        const genderName = gen ? gen.name : (r.gender || '-');
+        const genderName = r.gender_data?.name || r.gender || '-';
         
         const birthDateFormatted = r.birth_date ? new Date(r.birth_date).toLocaleDateString('id-ID') : '-';
 
@@ -292,11 +315,8 @@ export default function Patients() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Data Pasien</h1>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setIsPdfDialogOpen(true)}
-          >
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)} disabled={isExportingPDF}>
             <FileText className="w-4 h-4 mr-2" />
             Cetak PDF
           </Button>
@@ -306,7 +326,7 @@ export default function Patients() {
             disabled={isExporting}
           >
             <Download className="w-4 h-4 mr-2" />
-            CSV
+            Excel
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAdd}>
             <Plus className="w-4 h-4 mr-2" />
@@ -324,7 +344,10 @@ export default function Patients() {
                 placeholder="Cari pasien..." 
                 className="pl-8" 
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPageIndex(0);
+                }}
               />
             </div>
           </div>
