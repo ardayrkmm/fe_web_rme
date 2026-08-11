@@ -638,7 +638,7 @@ export default function TherapySessions() {
       </div>
 
       <Dialog open={isAppointmentFormOpen} onOpenChange={setIsAppointmentFormOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Isi Slot Terapi</DialogTitle>
           </DialogHeader>
@@ -660,13 +660,13 @@ export default function TherapySessions() {
       </Dialog>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detail Slot Terapi</DialogTitle>
           </DialogHeader>
           {selectedSlot?.data && (
             <div className="space-y-6 text-sm mt-4">
-              <div className="grid grid-cols-2 gap-y-4 gap-x-6 bg-slate-50 p-4 rounded-lg border">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 bg-slate-50 p-4 rounded-lg border">
                 <div>
                   <span className="text-slate-500 block mb-1">Status</span>
                   <Badge className={getStatusColor(selectedSlot.data.status_code)}>{selectedSlot.data.display_status}</Badge>
@@ -693,7 +693,7 @@ export default function TherapySessions() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex flex-wrap justify-end gap-3 pt-4 border-t">
                 <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
                   Tutup
                 </Button>

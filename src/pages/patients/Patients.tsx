@@ -433,7 +433,7 @@ export default function Patients() {
 
       {/* Dialog Tambah/Edit Pasien */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPatient ? 'Ubah Pasien' : 'Tambah Pasien Baru'}</DialogTitle>
           </DialogHeader>

@@ -129,7 +129,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="patient_id"
@@ -177,7 +177,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
           />
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="service_master_id"
@@ -229,7 +229,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="therapy_date"
@@ -294,7 +294,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="objective"
@@ -323,7 +323,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="plan"
@@ -368,7 +368,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
         
 
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex flex-wrap justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Batal
           </Button>

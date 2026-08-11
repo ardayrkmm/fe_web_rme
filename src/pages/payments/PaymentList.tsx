@@ -175,7 +175,7 @@ function RowActions({ row }: { row: Payment }) {
             <Share2 className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Bagikan Invoice {row.invoice_number}</DialogTitle>
           </DialogHeader>
@@ -352,15 +352,6 @@ export default function PaymentList() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Pembayaran</h1>
           <p className="text-sm text-slate-500 mt-1">Kelola transaksi dan invoice pasien</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 shadow-sm"
-            onClick={() => navigate('/payments/new')}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Buat Pembayaran
-          </Button>
         </div>
       </div>
 

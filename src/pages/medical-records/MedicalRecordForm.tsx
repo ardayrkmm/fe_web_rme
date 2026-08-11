@@ -141,7 +141,7 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
         {/* --- Pasien & Fisioterapis --- */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="patient_id"
@@ -205,7 +205,7 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
 
         {isPhysio ? (
           // Fisioterapis: tampilkan nama sendiri (read-only), physiotherapist_id sudah di-set otomatis
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="service_id"
@@ -237,7 +237,7 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
               </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="service_id"
@@ -335,7 +335,7 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex flex-wrap justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Batal
           </Button>

@@ -114,7 +114,7 @@ export function PhysiotherapistForm({ initialData, onSuccess, onCancel }: Physio
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="sip"
@@ -143,7 +143,7 @@ export function PhysiotherapistForm({ initialData, onSuccess, onCancel }: Physio
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="gender"
@@ -249,7 +249,7 @@ export function PhysiotherapistForm({ initialData, onSuccess, onCancel }: Physio
           />
         )}
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
+        <div className="flex flex-wrap justify-end space-x-2 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>
             Batal
           </Button>

@@ -135,7 +135,7 @@ export default function PaymentDetail() {
                 <Share2 className="w-4 h-4 mr-2" /> Bagikan
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Bagikan Invoice</DialogTitle>
               </DialogHeader>

@@ -335,7 +335,7 @@ export default function Physiotherapists() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPhysiotherapist ? 'Ubah Fisioterapis' : 'Tambah Fisioterapis Baru'}</DialogTitle>
           </DialogHeader>
