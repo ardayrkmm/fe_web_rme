@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -62,6 +62,19 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
     queryKey: ['physios-list'],
     queryFn: () => physiotherapistService.getPhysiotherapists(1, 100),
   });
+
+  const [isPatientDropdownOpen, setIsPatientDropdownOpen] = useState(false);
+  const patientDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (patientDropdownRef.current && !patientDropdownRef.current.contains(event.target as Node)) {
+        setIsPatientDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { data: servicesData } = useQuery({
     queryKey: ['services-list'],
@@ -148,34 +161,50 @@ export function MedicalRecordForm({ initialData, prefillData, onSuccess, onCance
             render={({ field }) => (
               <FormItem className="flex flex-col justify-start">
                 <FormLabel>Cari/Pilih Pasien *</FormLabel>
-                <Select disabled={!!prefillData} onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Cari nama atau No. RM..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <div className="p-2 border-b">
-                      <Input
-                        placeholder="Ketik untuk mencari pasien..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      />
+                <div className="relative" ref={patientDropdownRef}>
+                  <div
+                    className={`flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white ${prefillData ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'}`}
+                    onClick={() => !prefillData && setIsPatientDropdownOpen(!isPatientDropdownOpen)}
+                  >
+                    <span className={field.value ? 'text-slate-900' : 'text-slate-500'}>
+                      {selectedPatient ? `${selectedPatient.name} - ${selectedPatient.medical_record_number}` : 'Pilih atau cari pasien...'}
+                    </span>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 opacity-50"><path d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.26618 11.9026 7.38064 11.95 7.49999 11.95C7.61933 11.95 7.73379 11.9026 7.81819 11.8182L10.0682 9.56819Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+                  </div>
+                  
+                  {isPatientDropdownOpen && !prefillData && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white shadow-md outline-none">
+                      <div className="p-2 border-b">
+                        <Input
+                          autoFocus
+                          placeholder="Ketik nama atau No. RM..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <div className="max-h-60 overflow-y-auto p-1">
+                        {filteredPatients.length === 0 ? (
+                          <div className="py-6 text-center text-sm text-slate-500">Data tidak ditemukan</div>
+                        ) : (
+                          filteredPatients.map((p: any) => (
+                            <div
+                              key={p.id}
+                              className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 ${field.value === String(p.id) ? 'bg-slate-100 font-medium' : ''}`}
+                              onClick={() => {
+                                field.onChange(String(p.id));
+                                setIsPatientDropdownOpen(false);
+                                setSearchTerm('');
+                              }}
+                            >
+                              {p.name} - {p.medical_record_number}
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {filteredPatients.length === 0 ? (
-                        <div className="p-2 text-sm text-slate-500 text-center">Data tidak ditemukan</div>
-                      ) : (
-                        filteredPatients.map((p: any) => (
-                          <SelectItem key={p.id} value={String(p.id)}>
-                            {p.name} - {p.medical_record_number}
-                          </SelectItem>
-                        ))
-                      )}
-                    </div>
-                  </SelectContent>
-                </Select>
+                  )}
+                </div>
+
                 {selectedPatient && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md">
                     <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider mb-1">Pasien Terpilih:</p>
