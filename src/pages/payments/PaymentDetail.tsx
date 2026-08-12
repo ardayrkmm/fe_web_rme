@@ -195,7 +195,6 @@ export default function PaymentDetail() {
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">KEPADA</h3>
               <p className="text-xl font-bold text-slate-900">{payment.patient_name?.toUpperCase()}</p>
-              <p className="text-sm text-slate-500 mt-1">Sesi Terapi #{payment.therapy_session_id}</p>
             </div>
             <div className="text-right">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">TANGGAL PEMBAYARAN</h3>

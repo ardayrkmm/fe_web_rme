@@ -91,11 +91,7 @@ export function generateInvoicePdf(row: Payment) {
     doc.setFontSize(14);
     doc.text(row.patient_name?.toUpperCase() || '-', 20, y);
     
-    y += 5;
-    setGrayText();
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text(`Sesi Terapi #${row.therapy_session_id || '-'}`, 20, y);
+
 
     // Middle Right: TANGGAL PEMBAYARAN
     const dateY = y - 11;
