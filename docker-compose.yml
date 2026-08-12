@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api/v1
+    container_name: rekammedis_frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - rekammedis_net
+
+networks:
+  rekammedis_net:
+    external: true
+    name: rekammedis_net
