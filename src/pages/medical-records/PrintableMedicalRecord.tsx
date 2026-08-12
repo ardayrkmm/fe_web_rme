@@ -118,7 +118,7 @@ export const PrintableMedicalRecord = forwardRef<HTMLDivElement, PrintableMedica
             : '-';
 
           return (
-            <div key={rec.id || index} className="mb-10 break-inside-avoid">
+            <div key={rec.id || index} className="mb-10">
               <h3 className="font-semibold text-lg border-b border-slate-300 pb-1 mb-3">
                 Rekap Pemeriksaan {recordsToPrint.length > 1 ? `#${index + 1}` : ''}
               </h3>
