@@ -54,12 +54,12 @@ export default function ServiceMasterList() {
       
       const rows = records.map((r: any, index: number) => ({
         'No': index + 1,
-        'Kode Layanan': r.service_code || '-',
-        'Kategori': r.category?.name || '-',
+        'Kode Layanan': r.code || '-',
+        'Kategori': r.category || '-',
         'Nama Layanan': r.name,
         'Deskripsi': r.description || '-',
         'Harga': r.price ? `Rp ${Number(r.price).toLocaleString('id-ID')}` : 'Rp 0',
-        'Durasi (Menit)': r.duration_minutes || '-',
+        'Durasi (Menit)': r.duration || '-',
         'Status': r.is_active ? 'Aktif' : 'Tidak Aktif'
       }));
       

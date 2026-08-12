@@ -20,7 +20,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Plus, Search, FileDown, Eye, FileText, Download, Share2, MessageCircle, MoreHorizontal, ChevronLeft, ChevronRight, FileSpreadsheet, Download as DownloadIcon, Pencil, CheckCircle } from 'lucide-react';
+import { Plus, Search, FileDown, Eye, FileText, Download, Share2, MessageCircle, MoreHorizontal, ChevronLeft, ChevronRight, FileSpreadsheet, Download as DownloadIcon, Pencil, CheckCircle, Trash2, Edit } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -53,6 +53,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function RowActions({ row }: { row: Payment }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleDownload = async () => {
     try {
@@ -107,7 +108,6 @@ function RowActions({ row }: { row: Payment }) {
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const queryClient = useQueryClient();
   const updateStatusMutation = useMutation({
     mutationFn: (newStatus: string) => 
       paymentService.updatePayment(row.id, { 
@@ -124,6 +124,20 @@ function RowActions({ row }: { row: Payment }) {
     onError: () => toast.error('Gagal memperbarui status pembayaran'),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => paymentService.deletePayment(row.id),
+    onSuccess: () => {
+      toast.success('Pembayaran berhasil dihapus');
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+    onError: () => toast.error('Gagal menghapus pembayaran'),
+  });
+
+  const handleDelete = () => {
+    if (window.confirm('Yakin ingin menghapus data pembayaran ini?')) {
+      deleteMutation.mutate();
+    }
+  };
 
   return (
     <div className="flex items-center gap-1">
@@ -143,7 +157,7 @@ function RowActions({ row }: { row: Payment }) {
       <Button
         variant="ghost"
         size="icon"
-        title="Edit"
+        title="Edit Data"
         className="h-8 w-8 text-blue-600"
         onClick={() => navigate(`/payments/${row.id}/edit`)}
       >
@@ -153,10 +167,20 @@ function RowActions({ row }: { row: Payment }) {
         variant="ghost"
         size="icon"
         title="Detail"
-        className="h-8 w-8"
+        className="h-8 w-8 text-slate-600"
         onClick={() => navigate(`/payments/${row.id}`)}
       >
         <Eye className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Hapus"
+        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+        onClick={handleDelete}
+        disabled={deleteMutation.isPending}
+      >
+        <Trash2 className="h-4 w-4" />
       </Button>
       <Button
         variant="ghost"

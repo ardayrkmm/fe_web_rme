@@ -65,7 +65,7 @@ export default function PaymentForm() {
 
   const { data: paymentData, isLoading: isPaymentLoading } = useQuery({
     queryKey: ['payment', id],
-    queryFn: () => paymentService.getPayment(Number(id)),
+    queryFn: () => paymentService.getPayment(id as string),
     enabled: isEditing,
   });
 
@@ -131,13 +131,28 @@ export default function PaymentForm() {
   const watchSession = form.watch('therapy_session_id');
   useEffect(() => {
     if (watchSession && sessionsData?.data?.data && !isEditing) {
-      const session = sessionsData.data.data.find((s: any) => s.id === Number(watchSession));
+      const session = sessionsData.data.data.find((s: any) => String(s.id) === String(watchSession));
       if (session) {
-        form.setValue('patient_id', session.patient_id);
-        form.setValue('physiotherapist_id', session.physiotherapist_id);
+        form.setValue('patient_id', String(session.patient_id));
+        form.setValue('physiotherapist_id', String(session.physiotherapist_id));
+        
+        let newDetails: any[] = [];
+        const ids = session.service_master_ids?.length ? session.service_master_ids : (session.service_master_id ? [session.service_master_id] : []);
+        
+        if (ids.length > 0) {
+            newDetails = ids.map((id: string) => {
+               const svc = servicesData?.data?.data?.find((s: any) => String(s.id) === String(id));
+               return {
+                 service_master_id: String(id),
+                 quantity: 1,
+                 price: svc ? Number(svc.price) : 0
+               };
+            });
+            form.setValue('details', newDetails);
+        }
       }
     }
-  }, [watchSession, sessionsData, isEditing, form]);
+  }, [watchSession, sessionsData, servicesData, isEditing, form]);
 
   useEffect(() => {
     if (isEditing && paymentData?.data) {
@@ -157,8 +172,8 @@ export default function PaymentForm() {
         patient_id: pd.patient_id ? String(pd.patient_id) : '',
         physiotherapist_id: pd.physiotherapist_id ? String(pd.physiotherapist_id) : '',
         payment_date: pd.payment_date ? pd.payment_date.slice(0, 16) : new Date().toISOString().slice(0, 16),
-        payment_method: pd.payment_method || 'Tunai',
-        status: pd.status || 'Menunggu',
+        payment_method: pd.payment_method === 'cash' ? 'Tunai' : (pd.payment_method ? pd.payment_method.charAt(0).toUpperCase() + pd.payment_method.slice(1) : 'Tunai'),
+        status: pd.status ? pd.status.charAt(0).toUpperCase() + pd.status.slice(1) : 'Menunggu',
         discount: pd.discount || 0,
         tax: pd.tax || 0,
         notes: pd.notes || '',
@@ -169,6 +184,12 @@ export default function PaymentForm() {
 
   if (isEditing && isPaymentLoading) {
     return <div className="p-8 text-center text-slate-500">Memuat data pembayaran...</div>;
+  }
+
+  // Prevent rendering form until master data is loaded so Select components don't get stuck on placeholders
+  const isMasterDataLoading = sessionsData === undefined || patientsData === undefined || physiosData === undefined || servicesData === undefined;
+  if (isMasterDataLoading) {
+    return <div className="p-8 text-center text-slate-500">Memuat data master...</div>;
   }
 
   return (
@@ -192,18 +213,29 @@ export default function PaymentForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Sesi Terapi</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih sesi..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {sessionsData?.data?.data?.map((s: any) => (
-                          <SelectItem key={s.id} value={String(s.id)}>Sesi #{s.id} - {s.patient?.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isEditing ? (
+                      <div className="p-2 border rounded-md bg-slate-50 text-slate-500 text-sm">
+                        {field.value 
+                          ? (() => {
+                              const s = sessionsData?.data?.data?.find((x: any) => String(x.id) === String(field.value));
+                              return s ? `Sesi #${s.id} - ${s.patient?.name}` : field.value;
+                            })()
+                          : '-'}
+                      </div>
+                    ) : (
+                      <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih sesi..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sessionsData?.data?.data?.map((s: any) => (
+                            <SelectItem key={s.id} value={String(s.id)}>Sesi #{s.id} - {s.patient?.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -227,18 +259,24 @@ export default function PaymentForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pasien</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih pasien..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {patientsData?.data?.data?.map((p: any) => (
-                          <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isEditing ? (
+                      <div className="p-2 border rounded-md bg-slate-50 text-slate-500 text-sm">
+                        {patientsData?.data?.data?.find((p: any) => String(p.id) === String(field.value))?.name || '-'}
+                      </div>
+                    ) : (
+                      <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih pasien..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {patientsData?.data?.data?.map((p: any) => (
+                            <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -249,18 +287,24 @@ export default function PaymentForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Fisioterapis</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih fisioterapis..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {physiosData?.data?.data?.map((p: any) => (
-                          <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isEditing ? (
+                      <div className="p-2 border rounded-md bg-slate-50 text-slate-500 text-sm">
+                        {physiosData?.data?.data?.find((p: any) => String(p.id) === String(field.value))?.name || '-'}
+                      </div>
+                    ) : (
+                      <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih fisioterapis..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {physiosData?.data?.data?.map((p: any) => (
+                            <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -333,7 +377,7 @@ export default function PaymentForm() {
                             onValueChange={(val) => {
                               f.onChange(val);
                               // Auto update price
-                              const srv = servicesData?.data?.data?.find((s:any) => s.id === Number(val));
+                              const srv = servicesData?.data?.data?.find((s:any) => s.id === String(val));
                               if (srv) {
                                 form.setValue(`details.${index}.price`, Number(srv.price));
                               }
@@ -379,7 +423,7 @@ export default function PaymentForm() {
                         <FormItem>
                           <FormLabel>Harga</FormLabel>
                           <FormControl>
-                            <Input type="number" {...f} />
+                            <Input type="number" disabled {...f} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
