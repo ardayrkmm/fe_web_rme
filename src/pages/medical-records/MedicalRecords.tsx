@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Plus, Printer, Trash2, Search, ArrowLeft } from 'lucide-react';
+import { Plus, Printer, Trash2, Search, ArrowLeft, Edit } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import {
   Dialog,
@@ -256,6 +256,17 @@ export default function MedicalRecords() {
     setIsPrintDialogOpen(true);
   };
 
+  const handleEdit = (record: any) => {
+    setEditingRecord({
+      ...record,
+      patient_id: record.patient?.id,
+      physiotherapist_id: record.physiotherapist?.id,
+      service_id: record.service?.id
+    });
+    setPrefillData(null);
+    setIsDialogOpen(true);
+  };
+
   const handleAdd = () => {
     setPrefillData(null);
     setEditingRecord(null);
@@ -310,6 +321,17 @@ export default function MedicalRecords() {
           >
             <Printer className="h-4 w-4" />
           </Button>
+          {!isPhysio && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8 text-amber-500"
+              onClick={() => handleEdit(row.original)}
+              title="Edit"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
           {!isPhysio && (
             <Button 
               variant="outline" 
