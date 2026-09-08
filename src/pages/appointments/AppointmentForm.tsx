@@ -194,7 +194,7 @@ export function AppointmentForm({ initialData, onSuccess, onCancel }: Appointmen
                 <SelectContent>
                   {services.map((s: any) => (
                     <SelectItem key={s.id} value={String(s.id)}>
-                      {s.name} - Rp {s.price.toLocaleString('id-ID')}
+                      {s.name} - Rp {Number(s.price || 0).toLocaleString('id-ID')}
                     </SelectItem>
                   ))}
                 </SelectContent>

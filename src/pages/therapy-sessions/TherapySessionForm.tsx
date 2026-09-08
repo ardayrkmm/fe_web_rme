@@ -193,7 +193,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
                   <SelectContent>
                     {services.map((s: any) => (
                       <SelectItem key={s.id} value={String(s.id)}>
-                        {s.name} - Rp {s.price?.toLocaleString('id-ID')}
+                        {s.name} - Rp {Number(s.price || 0).toLocaleString('id-ID')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -218,7 +218,7 @@ export function TherapySessionForm({ initialData, prefillData, onSuccess, onCanc
                     <SelectItem value="none">Tidak ada tambahan</SelectItem>
                     {services.map((s: any) => (
                       <SelectItem key={s.id} value={String(s.id)}>
-                        {s.name} - Rp {s.price?.toLocaleString('id-ID')}
+                        {s.name} - Rp {Number(s.price || 0).toLocaleString('id-ID')}
                       </SelectItem>
                     ))}
                   </SelectContent>

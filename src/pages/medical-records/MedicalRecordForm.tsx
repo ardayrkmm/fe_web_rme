@@ -28,7 +28,7 @@ const medicalRecordSchema = z.object({
   visit_number: z.string().optional().or(z.literal('')),
   patient_id: z.string().min(1, 'Pasien wajib dipilih'),
   physiotherapist_id: z.string().min(1, 'Fisioterapis wajib dipilih'),
-  service_id: z.string().optional().or(z.literal('')),
+  service_id: z.string().min(1, 'Layanan wajib dipilih'),
   examination_date: z.string().min(1, 'Tanggal pemeriksaan wajib diisi'),
   anamnesis: z.string().min(1, 'Hasil anamnesis wajib diisi'),
   diagnosis: z.string().min(1, 'Diagnosa wajib diisi'),

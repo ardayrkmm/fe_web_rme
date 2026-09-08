@@ -349,7 +349,7 @@ export default function MedicalRecords() {
 
   const isHistoryMode = !!filterPatientId;
   const records = isHistoryMode 
-    ? (Array.isArray(data?.data) ? data.data : []) 
+    ? (data?.data?.data || []) 
     : (data?.data?.data || []);
   
   const pageCount = isHistoryMode ? 1 : (data?.data?.last_page || -1);

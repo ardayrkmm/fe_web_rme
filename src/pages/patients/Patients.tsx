@@ -71,7 +71,7 @@ export default function Patients() {
     enabled: !!selectedPatientForRm?.id && isRmDialogOpen,
   });
 
-  const rmRecords: any[] = Array.isArray(rmData?.data) ? rmData.data : [];
+  const rmRecords: any[] = Array.isArray(rmData?.data?.data) ? rmData.data.data : [];
 
   const handleOpenRmDialog = (patient: any) => {
     setSelectedPatientForRm(patient);
