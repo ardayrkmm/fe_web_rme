@@ -43,13 +43,33 @@ export default function Login() {
     setError(null);
     try {
       const response = await apiClient.post('/auth/login', data);
-      const { user, token } = response.data.data;
+      
+      // Deteksi jika API mengembalikan success: false meskipun status HTTP 200
+      if (response.data && response.data.success === false) {
+        throw new Error(response.data.message || 'Login ditolak oleh server');
+      }
+
+      // Dukung 2 jenis struktur backend (response.data.data atau response.data langsung)
+      const payload = response.data.data || response.data;
+      const user = payload?.user;
+      const token = payload?.token;
+
+      if (!user || !token) {
+         console.error("Format data dari API tidak sesuai:", response.data);
+         throw new Error("Format balasan API tidak memiliki user/token");
+      }
+
       setAuth(user, token);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || 'Gagal masuk. Silakan periksa kredensial Anda.'
-      );
+      console.error("Login Error Detail:", err);
+      // Jika dari Axios
+      if (err.response) {
+         setError(err.response?.data?.message || 'Gagal masuk. Silakan periksa kredensial Anda.');
+      } else {
+         // Jika dari error JS atau throw manual
+         setError(err.message || 'Terjadi kesalahan sistem.');
+      }
     }
   };
 
