@@ -18,7 +18,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Plus, Pencil, Trash2, Search, Download, Users, FileText, ClipboardList, Calendar, Stethoscope, User, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Download, Users, FileText, ClipboardList, Calendar, Stethoscope, User, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import {
   Dialog,
@@ -301,6 +301,13 @@ export default function Patients() {
   ];
 
   const patients = data?.data?.data || [];
+  const meta = data?.data?.meta || data?.meta;
+  const total = meta?.total ?? data?.data?.total ?? (patients.length > 0 ? (patients.length < pageSize ? pageIndex * pageSize + patients.length : (pageIndex + 2) * pageSize) : 0);
+  const lastPage = meta?.last_page ?? data?.data?.last_page ?? (total > 0 ? Math.ceil(total / pageSize) : (patients.length === pageSize ? pageIndex + 2 : pageIndex + 1));
+  const from = meta?.from ?? data?.data?.from ?? (patients.length > 0 ? pageIndex * pageSize + 1 : 0);
+  const to = meta?.to ?? data?.data?.to ?? (pageIndex * pageSize + patients.length);
+  const canNext = pageIndex + 1 < lastPage || patients.length === pageSize;
+  const canPrev = pageIndex > 0;
   
   const table = useReactTable({
     data: patients,
@@ -308,7 +315,7 @@ export default function Patients() {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
-    pageCount: data?.data?.meta?.last_page || -1,
+    pageCount: lastPage,
   });
 
   return (
@@ -410,23 +417,55 @@ export default function Patients() {
             </TableBody>
           </Table>
           
-          <div className="flex items-center justify-end space-x-2 p-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPageIndex((old) => Math.max(old - 1, 0))}
-              disabled={pageIndex === 0}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPageIndex((old) => old + 1)}
-              disabled={pageIndex >= (data?.data?.meta?.last_page || 1) - 1}
-            >
-              Berikutnya
-            </Button>
+          {/* Pagination bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t bg-slate-50/50">
+            <p className="text-sm text-slate-500 font-medium">
+              {total > 0 
+                ? `Menampilkan ${from}–${to} dari ${total} pasien` 
+                : patients.length > 0 
+                  ? `Menampilkan ${patients.length} pasien` 
+                  : 'Tidak ada data'}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
+                onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                disabled={!canPrev}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Sebelumnya</span>
+              </Button>
+              
+              {/* Page Number Buttons */}
+              {Array.from({ length: Math.min(Math.max(lastPage, 1), 5) }).map((_, idx) => {
+                const pageNum = idx + 1;
+                const isActive = pageIndex + 1 === pageNum;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    className={`h-9 w-9 p-0 font-medium ${isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                    onClick={() => setPageIndex(idx)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
+                onClick={() => setPageIndex((p) => p + 1)}
+                disabled={!canNext}
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
