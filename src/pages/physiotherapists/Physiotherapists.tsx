@@ -222,7 +222,7 @@ export default function Physiotherapists() {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
-    pageCount: data?.data?.last_page || -1,
+    pageCount: data?.data?.meta?.last_page || -1,
   });
 
   return (
@@ -326,7 +326,7 @@ export default function Physiotherapists() {
               variant="outline"
               size="sm"
               onClick={() => setPageIndex((old) => old + 1)}
-              disabled={pageIndex >= (data?.data?.last_page || 1) - 1}
+              disabled={pageIndex >= (data?.data?.meta?.last_page || 1) - 1}
             >
               Berikutnya
             </Button>

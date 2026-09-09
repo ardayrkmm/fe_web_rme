@@ -255,10 +255,10 @@ export default function PaymentList() {
   });
 
   const payments: Payment[] = data?.data?.data ?? [];
-  const lastPage: number = data?.data?.last_page ?? 1;
-  const total: number = data?.data?.data?.total ?? 0;
-  const from: number = data?.data?.from ?? 0;
-  const to: number = data?.data?.to ?? 0;
+  const lastPage: number = data?.data?.meta?.last_page ?? 1;
+  const total: number = data?.data?.meta?.total ?? 0;
+  const from: number = data?.data?.meta?.from ?? 0;
+  const to: number = data?.data?.meta?.to ?? 0;
 
   // Compute quick stats from current page data (approx.)
   const totalAmount = payments.reduce((s, p) => s + Number(p.total), 0);

@@ -352,7 +352,7 @@ export default function MedicalRecords() {
     ? (data?.data?.data || []) 
     : (data?.data?.data || []);
   
-  const pageCount = isHistoryMode ? 1 : (data?.data?.last_page || -1);
+  const pageCount = isHistoryMode ? 1 : (data?.data?.meta?.last_page || -1);
 
   const table = useReactTable({
     data: records,
@@ -472,34 +472,35 @@ export default function MedicalRecords() {
             </TableBody>
           </Table>
           <div className="flex items-center justify-between mt-4 text-sm text-slate-500">
-            <div>
-              Menampilkan {table.getRowModel().rows.length} dari {isHistoryMode ? records.length : (data?.data?.data?.total || 0)} data
+            <div className="text-sm text-slate-500">
+              Menampilkan {table.getRowModel().rows.length} dari {isHistoryMode ? records.length : (data?.data?.meta?.total || 0)} data
             </div>
-            <div className="flex gap-2">
+            
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   if (isHistoryMode) table.previousPage();
-                  else setPageIndex((p) => Math.max(0, p - 1));
+                  else setPageIndex((old) => Math.max(old - 1, 0));
                 }}
                 disabled={isHistoryMode ? !table.getCanPreviousPage() : pageIndex === 0}
               >
                 Sebelumnya
               </Button>
-              <div className="flex items-center px-4 font-medium">
+              <span className="text-sm text-slate-600 px-2">
                 Halaman {isHistoryMode ? table.getState().pagination.pageIndex + 1 : pageIndex + 1}
-              </div>
+              </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   if (isHistoryMode) table.nextPage();
-                  else setPageIndex((p) => p + 1);
+                  else setPageIndex((old) => old + 1);
                 }}
-                disabled={isHistoryMode ? !table.getCanNextPage() : pageIndex >= (data?.data?.last_page || 1) - 1}
+                disabled={isHistoryMode ? !table.getCanNextPage() : pageIndex >= (data?.data?.meta?.last_page || 1) - 1}
               >
-                Selanjutnya
+                Berikutnya
               </Button>
             </div>
           </div>
