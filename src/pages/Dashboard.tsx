@@ -52,11 +52,17 @@ export default function Dashboard() {
     today_patients: 0
   };
 
-  const patientChartData = rawData?.charts?.patients || [
-    { month: 'Jan', total: 0 }, { month: 'Feb', total: 0 },
-    { month: 'Mar', total: 0 }, { month: 'Apr', total: 0 },
-    { month: 'May', total: 0 }, { month: 'Jun', total: 0 }
-  ];
+  const rawPatients = Array.isArray(rawData?.charts?.patients) ? rawData.charts.patients : [];
+  const patientChartData = rawPatients.length > 0
+    ? rawPatients.map((item: any) => ({
+        month: item.month || item.label || item.name || '',
+        total: Number(item.total ?? item.value ?? item.count ?? 0)
+      }))
+    : [
+        { month: 'Jan', total: 0 }, { month: 'Feb', total: 0 },
+        { month: 'Mar', total: 0 }, { month: 'Apr', total: 0 },
+        { month: 'Mei', total: 0 }, { month: 'Jun', total: 0 }
+      ];
 
   const appointmentStatusData = rawData?.charts?.appointments || [
     { name: 'Selesai', value: 0 },
