@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Plus, Printer, Trash2, Search, ArrowLeft, Edit } from 'lucide-react';
+import { Plus, Printer, Trash2, Search, ArrowLeft, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import {
   Dialog,
@@ -352,7 +352,15 @@ export default function MedicalRecords() {
     ? (data?.data?.data || []) 
     : (data?.data?.data || []);
   
-  const pageCount = isHistoryMode ? 1 : (data?.data?.meta?.last_page || -1);
+  const meta = data?.data?.meta || data?.meta;
+  const total = isHistoryMode ? records.length : (meta?.total ?? data?.data?.total ?? (records.length > 0 ? (records.length < pageSize ? pageIndex * pageSize + records.length : (pageIndex + 2) * pageSize) : 0));
+  const lastPage = isHistoryMode ? Math.max(1, Math.ceil(records.length / pageSize)) : (meta?.last_page ?? data?.data?.last_page ?? (total > 0 ? Math.ceil(total / pageSize) : (records.length === pageSize ? pageIndex + 2 : pageIndex + 1)));
+  const from = isHistoryMode ? (records.length > 0 ? 1 : 0) : (meta?.from ?? (records.length > 0 ? pageIndex * pageSize + 1 : 0));
+  const to = isHistoryMode ? records.length : (meta?.to ?? (pageIndex * pageSize + records.length));
+  const canNext = isHistoryMode ? table.getCanNextPage() : (pageIndex + 1 < lastPage || records.length === pageSize);
+  const canPrev = isHistoryMode ? table.getCanPreviousPage() : pageIndex > 0;
+  
+  const pageCount = isHistoryMode ? 1 : lastPage;
 
   const table = useReactTable({
     data: records,
@@ -471,36 +479,63 @@ export default function MedicalRecords() {
               )}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between mt-4 text-sm text-slate-500">
-            <div className="text-sm text-slate-500">
-              Menampilkan {table.getRowModel().rows.length} dari {isHistoryMode ? records.length : (data?.data?.meta?.total || 0)} data
-            </div>
-            
-            <div className="flex items-center space-x-2">
+          {/* Pagination bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t bg-slate-50/50 mt-4">
+            <p className="text-sm text-slate-500 font-medium">
+              {total > 0 
+                ? `Menampilkan ${from}–${to} dari ${total} rekam medis` 
+                : records.length > 0 
+                  ? `Menampilkan ${records.length} rekam medis` 
+                  : 'Tidak ada data'}
+            </p>
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
+                className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
                 onClick={() => {
                   if (isHistoryMode) table.previousPage();
-                  else setPageIndex((old) => Math.max(old - 1, 0));
+                  else setPageIndex((p) => Math.max(0, p - 1));
                 }}
-                disabled={isHistoryMode ? !table.getCanPreviousPage() : pageIndex === 0}
+                disabled={!canPrev}
               >
-                Sebelumnya
+                <ChevronLeft className="h-4 w-4" />
+                <span>Sebelumnya</span>
               </Button>
-              <span className="text-sm text-slate-600 px-2">
-                Halaman {isHistoryMode ? table.getState().pagination.pageIndex + 1 : pageIndex + 1}
-              </span>
+              
+              {/* Page Number Buttons */}
+              {Array.from({ length: Math.min(Math.max(lastPage, 1), 5) }).map((_, idx) => {
+                const pageNum = idx + 1;
+                const currentPage = isHistoryMode ? table.getState().pagination.pageIndex + 1 : pageIndex + 1;
+                const isActive = currentPage === pageNum;
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    className={`h-9 w-9 p-0 font-medium ${isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                    onClick={() => {
+                      if (isHistoryMode) table.setPageIndex(idx);
+                      else setPageIndex(idx);
+                    }}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+
               <Button
                 variant="outline"
                 size="sm"
+                className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
                 onClick={() => {
                   if (isHistoryMode) table.nextPage();
-                  else setPageIndex((old) => old + 1);
+                  else setPageIndex((p) => p + 1);
                 }}
-                disabled={isHistoryMode ? !table.getCanNextPage() : pageIndex >= (data?.data?.meta?.last_page || 1) - 1}
+                disabled={!canNext}
               >
-                Berikutnya
+                <span>Berikutnya</span>
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>

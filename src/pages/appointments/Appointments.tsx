@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
-import { Plus, Search, MoreVertical, Edit, Trash2, FileText } from 'lucide-react';
+import { Plus, Search, MoreVertical, Edit, Trash2, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppointmentForm } from './AppointmentForm';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -93,6 +93,13 @@ export default function Appointments() {
   const appointments = Array.from(appointmentsMap.values()).sort((a: any, b: any) => {
     return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
+
+  const total = appointments.length;
+  const lastPage = Math.max(1, Math.ceil(total / pageSize));
+  const from = total > 0 ? pageIndex * pageSize + 1 : 0;
+  const to = Math.min(total, (pageIndex + 1) * pageSize);
+  const canNext = pageIndex + 1 < lastPage;
+  const canPrev = pageIndex > 0;
 
   const paginatedAppointments = appointments.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
 
@@ -294,23 +301,53 @@ export default function Appointments() {
           </TableBody>
         </Table>
         
-        <div className="flex items-center justify-end space-x-2 p-4 border-t border-slate-100 bg-white">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPageIndex((old) => Math.max(old - 1, 0))}
-            disabled={pageIndex === 0}
-          >
-            Sebelumnya
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPageIndex((old) => old + 1)}
-            disabled={pageIndex >= Math.ceil(appointments.length / pageSize) - 1 || appointments.length === 0}
-          >
-            Berikutnya
-          </Button>
+        {/* Pagination bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t bg-slate-50/50">
+          <p className="text-sm text-slate-500 font-medium">
+            {total > 0 
+              ? `Menampilkan ${from}–${to} dari ${total} janji terapi` 
+              : 'Tidak ada data'}
+          </p>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
+              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+              disabled={!canPrev}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Sebelumnya</span>
+            </Button>
+            
+            {/* Page Number Buttons */}
+            {Array.from({ length: Math.min(Math.max(lastPage, 1), 5) }).map((_, idx) => {
+              const pageNum = idx + 1;
+              const isActive = pageIndex + 1 === pageNum;
+              return (
+                <Button
+                  key={pageNum}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  className={`h-9 w-9 p-0 font-medium ${isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                  onClick={() => setPageIndex(idx)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
+              onClick={() => setPageIndex((p) => p + 1)}
+              disabled={!canNext}
+            >
+              <span>Berikutnya</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 

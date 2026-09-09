@@ -509,30 +509,47 @@ export default function PaymentList() {
         </div>
 
         {/* Pagination bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/50">
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t bg-slate-50/50">
+          <p className="text-sm text-slate-500 font-medium">
             {total > 0 ? `Menampilkan ${from}–${to} dari ${total} transaksi` : 'Tidak ada data'}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
               onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
               disabled={pageIndex === 0}
             >
               <ChevronLeft className="h-4 w-4" />
+              <span>Sebelumnya</span>
             </Button>
-            <span className="text-sm text-slate-600 px-2">
-              Hal {pageIndex + 1} / {lastPage}
-            </span>
+            
+            {/* Page Number Buttons */}
+            {Array.from({ length: Math.min(Math.max(lastPage, 1), 5) }).map((_, idx) => {
+              const pageNum = idx + 1;
+              const isActive = pageIndex + 1 === pageNum;
+              return (
+                <Button
+                  key={pageNum}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  className={`h-9 w-9 p-0 font-medium ${isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                  onClick={() => setPageIndex(idx)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setPageIndex((p) => Math.min(lastPage - 1, p + 1))}
-              disabled={pageIndex >= lastPage - 1}
+              className="h-9 px-3 gap-1 text-slate-700 hover:bg-slate-100"
+              onClick={() => setPageIndex((p) => p + 1)}
+              disabled={pageIndex + 1 >= lastPage && payments.length < 10}
             >
+              <span>Berikutnya</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
