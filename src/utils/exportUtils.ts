@@ -195,3 +195,44 @@ export const exportToExcelStyled = async (mainTitle: string, subTitle: string, d
   saveAs(blob, filename);
 };
 
+/**
+ * Helper to fetch all paginated records by iterating through pages.
+ * Handles single-page responses with large limits as well as multi-page responses.
+ */
+export async function fetchAllPaginatedData<T = any>(
+  fetchPage: (page: number, perPage: number) => Promise<any>,
+  perPage = 1000
+): Promise<T[]> {
+  const allItems: T[] = [];
+  let currentPage = 1;
+  let lastPage = 1;
+
+  do {
+    const res = await fetchPage(currentPage, perPage);
+    const items = Array.isArray(res?.data?.data)
+      ? res.data.data
+      : Array.isArray(res?.data)
+      ? res.data
+      : Array.isArray(res)
+      ? res
+      : [];
+
+    allItems.push(...items);
+
+    const meta = res?.data?.meta || res?.meta || res?.data;
+    if (meta && typeof meta.last_page === 'number') {
+      lastPage = meta.last_page;
+    } else {
+      if (items.length < perPage) {
+        break;
+      }
+      lastPage = currentPage + 1;
+    }
+
+    currentPage++;
+    if (currentPage > 100) break; // Safety limit
+  } while (currentPage <= lastPage);
+
+  return allItems;
+}
+

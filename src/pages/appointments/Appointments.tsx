@@ -29,7 +29,7 @@ import { Plus, Search, MoreVertical, Edit, Trash2, FileText, ChevronLeft, Chevro
 import { toast } from 'sonner';
 import { AppointmentForm } from './AppointmentForm';
 import { useAuthStore } from '../../store/useAuthStore';
-import { exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
+import { exportToPDF, exportToExcelStyled, fetchAllPaginatedData } from '../../utils/exportUtils';
 import { handleApiError } from '../../utils/errorHandler';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
@@ -126,12 +126,10 @@ export default function Appointments() {
   const handleExportPDF = async (mode: 'all' | 'month', monthStr?: string) => {
     try {
       setIsExportingPDF(true);
-      const res = await appointmentService.getAppointments(1, 1000, searchTerm);
+      let records = await fetchAllPaginatedData((p, pp) => 
+        appointmentService.getAppointments(p, pp, searchTerm)
+      );
       
-      let records = Array.isArray(res?.data?.data) ? res.data.data :
-                      Array.isArray(res?.data) ? res.data :
-                      Array.isArray(res) ? res : [];
-                      
       if (mode === 'month' && monthStr) {
         const [year, month] = monthStr.split('-');
         records = records.filter((r: any) => {
@@ -145,6 +143,11 @@ export default function Appointments() {
           toast.error('Tidak ada data janji terapi pada bulan tersebut');
           return;
         }
+      }
+      
+      if (records.length === 0) {
+        toast.error('Tidak ada data janji terapi untuk diekspor');
+        return;
       }
       
       const columns = ['Tanggal', 'Waktu', 'Pasien', 'Fisioterapis', 'Status', 'Keluhan Utama'];
@@ -178,10 +181,9 @@ export default function Appointments() {
   const handleExportExcel = async () => {
     try {
       setIsExportingExcel(true);
-      const res = await appointmentService.getAppointments(1, 1000, searchTerm);
-      const records = Array.isArray(res?.data?.data) ? res.data.data :
-                      Array.isArray(res?.data) ? res.data :
-                      Array.isArray(res) ? res : [];
+      const records = await fetchAllPaginatedData((p, pp) => 
+        appointmentService.getAppointments(p, pp, searchTerm)
+      );
       if (records.length === 0) {
         toast.error('Tidak ada data untuk diekspor');
         return;
@@ -200,7 +202,7 @@ export default function Appointments() {
       
       const date = new Date().toISOString().split('T')[0];
       await exportToExcelStyled('Arummy Fisioterapi', 'Data Janji Terapi', rows, `janji_terapi_${date}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
+      toast.success(`File Excel berhasil diunduh (${records.length} data)`);
     } catch (error) {
       handleApiError(error);
       toast.error('Gagal mengekspor file Excel');

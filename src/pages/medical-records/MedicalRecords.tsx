@@ -34,7 +34,7 @@ import { PrintableMedicalRecord } from './PrintableMedicalRecord';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
+import { exportToPDF, exportToExcelStyled, fetchAllPaginatedData } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 import { FileText } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -159,12 +159,10 @@ export default function MedicalRecords() {
   const handleExportPDF = async (mode: 'all' | 'month', monthStr?: string) => {
     try {
       setIsExportingPDF(true);
-      const res = await medicalRecordService.getMedicalRecords(1, 1000, search);
+      let records = await fetchAllPaginatedData((p, pp) => 
+        medicalRecordService.getMedicalRecords(p, pp, search)
+      );
       
-      let records = Array.isArray(res?.data?.data) ? res.data.data :
-                      Array.isArray(res?.data) ? res.data :
-                      Array.isArray(res) ? res : [];
-                      
       if (mode === 'month' && monthStr) {
         const [year, month] = monthStr.split('-');
         records = records.filter((r: any) => {
@@ -178,6 +176,11 @@ export default function MedicalRecords() {
           toast.error('Tidak ada data rekam medis pada bulan tersebut');
           return;
         }
+      }
+      
+      if (records.length === 0) {
+        toast.error('Tidak ada data rekam medis untuk diekspor');
+        return;
       }
       
       const pdfColumns = ['No Kunjungan', 'No RekamMedis', 'Nama pasien', 'tgl Pemeriksaan', 'Jenis layanan', 'Fisioterapisnya'];
@@ -211,10 +214,9 @@ export default function MedicalRecords() {
   const handleExportExcel = async () => {
     try {
       setIsExportingExcel(true);
-      const res = await medicalRecordService.getMedicalRecords(1, 1000, search);
-      const records = Array.isArray(res?.data?.data) ? res.data.data :
-                      Array.isArray(res?.data) ? res.data :
-                      Array.isArray(res) ? res : [];
+      const records = await fetchAllPaginatedData((p, pp) => 
+        medicalRecordService.getMedicalRecords(p, pp, search)
+      );
       if (records.length === 0) {
         toast.error('Tidak ada data untuk diekspor');
         return;
@@ -235,7 +237,7 @@ export default function MedicalRecords() {
       
       const date = new Date().toISOString().split('T')[0];
       await exportToExcelStyled('Arummy Fisioterapi', 'Data Rekam Medis', rows, `rekam_medis_${date}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
+      toast.success(`File Excel berhasil diunduh (${records.length} data)`);
     } catch (error) {
       handleApiError(error);
       toast.error('Gagal mengekspor file Excel');

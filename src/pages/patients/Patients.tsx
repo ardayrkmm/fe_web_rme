@@ -30,7 +30,7 @@ import { PatientForm } from './PatientForm';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { downloadBlob, exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
+import { downloadBlob, exportToPDF, exportToExcelStyled, fetchAllPaginatedData } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
 interface Patient {
@@ -81,8 +81,9 @@ export default function Patients() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const res = await patientService.getPatients(1, 1000, search);
-      const records = res.data?.data || [];
+      const records = await fetchAllPaginatedData((p, pp) => 
+        patientService.getPatients(p, pp, search)
+      );
       if (records.length === 0) {
         toast.error('Tidak ada data untuk diekspor');
         return;
@@ -107,7 +108,7 @@ export default function Patients() {
       
       const date = new Date().toISOString().split('T')[0];
       await exportToExcelStyled('Arummy Fisioterapi', 'Data Pasien', rows, `pasien_${date}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
+      toast.success(`File Excel berhasil diunduh (${records.length} data)`);
     } catch (error) {
       handleApiError(error);
       toast.error('Gagal mengekspor file Excel');
@@ -120,8 +121,9 @@ export default function Patients() {
   const handleExportPDF = async (mode: 'all' | 'month', monthStr?: string) => {
     try {
       setIsExportingPDF(true);
-      const res = await patientService.getPatients(1, 1000, search);
-      let records = res.data?.data || [];
+      let records = await fetchAllPaginatedData((p, pp) => 
+        patientService.getPatients(p, pp, search)
+      );
       
       // Filter by month if selected
       if (mode === 'month' && monthStr) {

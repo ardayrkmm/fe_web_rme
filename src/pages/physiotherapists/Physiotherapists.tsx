@@ -30,7 +30,7 @@ import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
-import { downloadBlob, exportToPDF, exportToExcelStyled } from '../../utils/exportUtils';
+import { downloadBlob, exportToPDF, exportToExcelStyled, fetchAllPaginatedData } from '../../utils/exportUtils';
 import { ExportPdfDialog } from '../../components/ExportPdfDialog';
 
 interface Physiotherapist {
@@ -60,8 +60,9 @@ export default function Physiotherapists() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const res = await physiotherapistService.getPhysiotherapists(1, 1000, search);
-      const records = res.data?.data || [];
+      const records = await fetchAllPaginatedData((p, pp) => 
+        physiotherapistService.getPhysiotherapists(p, pp, search)
+      );
       if (records.length === 0) {
         toast.error('Tidak ada data untuk diekspor');
         return;
@@ -79,7 +80,7 @@ export default function Physiotherapists() {
       
       const date = new Date().toISOString().split('T')[0];
       await exportToExcelStyled('Arummy Fisioterapi', 'Data Fisioterapis', rows, `fisioterapis_${date}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
+      toast.success(`File Excel berhasil diunduh (${records.length} data)`);
     } catch (error) {
       handleApiError(error);
       toast.error('Gagal mengekspor file Excel');
@@ -91,8 +92,9 @@ export default function Physiotherapists() {
   const handleExportPDF = async (mode: 'all' | 'month', monthStr?: string) => {
     try {
       setIsExportingPDF(true);
-      const res = await physiotherapistService.getPhysiotherapists(1, 1000, search);
-      let records = res.data?.data || [];
+      let records = await fetchAllPaginatedData((p, pp) => 
+        physiotherapistService.getPhysiotherapists(p, pp, search)
+      );
       
       if (mode === 'month' && monthStr) {
         const [year, month] = monthStr.split('-');

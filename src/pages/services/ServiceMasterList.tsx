@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { handleApiError } from '../../utils/errorHandler';
 import { Badge } from '../../components/ui/badge';
 
-import { downloadBlob, exportToExcelStyled } from '../../utils/exportUtils';
+import { downloadBlob, exportToExcelStyled, fetchAllPaginatedData } from '../../utils/exportUtils';
 
 export default function ServiceMasterList() {
   const queryClient = useQueryClient();
@@ -45,8 +45,9 @@ export default function ServiceMasterList() {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const res = await serviceMasterService.getServices(1, 1000, search);
-      const records = res.data?.data || [];
+      const records = await fetchAllPaginatedData((p, pp) => 
+        serviceMasterService.getServices(p, pp, search)
+      );
       if (records.length === 0) {
         toast.error('Tidak ada data untuk diekspor');
         return;
@@ -65,7 +66,7 @@ export default function ServiceMasterList() {
       
       const date = new Date().toISOString().split('T')[0];
       await exportToExcelStyled('Arummy Fisioterapi', 'Data Layanan', rows, `layanan_${date}.xlsx`);
-      toast.success('File Excel berhasil diunduh');
+      toast.success(`File Excel berhasil diunduh (${records.length} data)`);
     } catch (error) {
       handleApiError(error);
       toast.error('Gagal mengekspor file Excel');

@@ -4,7 +4,7 @@ import { paymentService } from '../../services/paymentService';
 import { generateInvoicePdf } from '../../utils/invoicePdf';
 
 import type { Payment } from '../../services/paymentService';
-import { exportToPDF } from '../../utils/exportUtils';
+import { exportToPDF, fetchAllPaginatedData } from '../../utils/exportUtils';
 import {
   flexRender,
   getCoreRowModel,
@@ -242,10 +242,11 @@ export default function PaymentList() {
   const [isExporting, setIsExporting] = useState(false);
   const pageSize = 15;
 
-  // Helper: get all payments for export (fetch large page)
+  // Helper: get all payments for export (fetch all pages)
   const fetchAllForExport = async () => {
-    const res = await paymentService.getPayments(1, 1000, search, statusFilter, startDate, endDate);
-    return res?.data?.data || [];
+    return await fetchAllPaginatedData((p, pp) =>
+      paymentService.getPayments(p, pp, search, statusFilter, startDate, endDate)
+    );
   };
 
   const { data, isLoading } = useQuery({
